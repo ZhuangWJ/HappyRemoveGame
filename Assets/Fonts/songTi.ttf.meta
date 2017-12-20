@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: 1b858a3de9051b841b531a56a6d83349
+timeCreated: 1513664902
+licenseType: Free
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Tianshi-SunOld
+  fontNames:
+  - Tianshi-SunOld
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
