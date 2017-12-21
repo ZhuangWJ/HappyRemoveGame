@@ -22,4 +22,24 @@ public class GridBean
     /// </summary>
     public int listVertical;
 
+    /// <summary>
+    /// 需要掉落的距离
+    /// </summary>
+    public float dropHeight;
+
+    /// <summary>
+    /// 下落的格子数
+    /// </summary>
+    public int dropCounts;
+    
+    /// <summary>
+    /// 是否在最顶层
+    /// </summary>
+    public bool isTop;
+
+    /// <summary>
+    /// 元素的类型
+    /// </summary>
+    public Sprite sprite;
+
 }

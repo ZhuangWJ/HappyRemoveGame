@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GridUI : MonoBehaviour
 {
-    public Sprite[] sprites = new Sprite[6];
+    private static string[] resourcesId = new string[]{"bear","cat","chicken","fox","frog","horse"};
+    private static List<Sprite> sprites = new List<Sprite>();
     public Sprite spriteGridBg;
     public GameObject mainCanvas;
     public Font songTi;
@@ -17,13 +19,13 @@ public class GridUI : MonoBehaviour
 
     private GameData gameData;//json数据对象
     private string jsonPath;//json数据获取的地址
-    private MyWindowData myWindowData;//配置文件的内容
+    private static MyWindowData myWindowData;//配置文件的内容
     private float intervalPx;//元素的间隔
     private float interval; //两个元素中心点的距离，即元素本身的Size + intervalPx
     private float gridSize;//元素的width和Height
     private float leaveSize; //屏幕左右两边共预留的像素
 
-    private List<List<GridBean>> gridListManager = new List<List<GridBean>>();//管理所有列的List
+    private static List<List<GridBean>> gridListManager = new List<List<GridBean>>();//管理所有列的List
     private List<GridBean> gridList;//一列元素的List
     private List<GridBean> gridDropList = new List<GridBean>();//掉落备用元素List
 
@@ -57,9 +59,33 @@ public class GridUI : MonoBehaviour
     private GameObject great;//完成目标后显示的对象
     private GameObject targetGrid;//目标类型
 
+    private GameObject sceneEditorButton;//视图编辑器按钮
+
+    private static GameObjManager gameObjManager;
+
+    //返回游戏对象管理者
+    internal static GameObjManager getMainCanvasManager()
+    {
+        if (gameObjManager!= null)
+        {
+            return gameObjManager;
+        }
+        return null;
+    }
+
+    //返回资源数组
+    public static List<Sprite> getSprites()
+    {
+        return sprites;
+    }
+
     // Use this for initialization
     void Start()
     {
+        //创建游戏对象管理者
+        gameObjManager = new GameObjManager();
+        gameObjManager.sprites = sprites;
+
         //初始化游戏场景
         initGameBg();
 
@@ -93,8 +119,9 @@ public class GridUI : MonoBehaviour
 
     private void initGameBg()
     {
-        //[1]创建UI对象
+        //[0]创建UI对象
         GameObject gameBackground = new GameObject();
+        gameObjManager.gameBackground = gameBackground;
         GameObject branch = new GameObject();
         targetBoard = new GameObject();
 
@@ -121,21 +148,21 @@ public class GridUI : MonoBehaviour
         sprite_gameBackground = Resources.Load("game_background", sprite_gameBackground.GetType()) as Sprite;
         sprite_branch = Resources.Load("branch", sprite_branch.GetType()) as Sprite;
         sprite_targetBoard = Resources.Load("target_board", sprite_targetBoard.GetType()) as Sprite;
-  
+
         gameBackground.GetComponent<Image>().sprite = sprite_gameBackground;
         branch.GetComponent<Image>().sprite = sprite_branch;
         targetBoard.GetComponent<Image>().sprite = sprite_targetBoard;
 
         //[5]设置对象position和大小
-        Debug.Log("Screen.width:" + Screen.width);
-        Debug.Log("Screen.height:" + Screen.height);
+        //Debug.Log("Screen.width:" + Screen.width);
+        //Debug.Log("Screen.height:" + Screen.height);
         //gameBackground.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 0);
         //gameBackground.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, 0, 0);
         gameBackground.GetComponent<Image>().SetNativeSize();
         gameBgWith = gameBackground.GetComponent<RectTransform>().rect.width;
         gameBgHeight = gameBackground.GetComponent<RectTransform>().rect.height;
-        Debug.Log("gameBgWith:" + gameBgWith);
-        Debug.Log("gameBgHeight:" + gameBgHeight);
+        //Debug.Log("gameBgWith:" + gameBgWith);
+        //Debug.Log("gameBgHeight:" + gameBgHeight);
         //如果屏幕高宽比例大于背景高宽比，则使用屏幕宽度作为背景宽度，则反之
         if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
         {
@@ -151,8 +178,8 @@ public class GridUI : MonoBehaviour
             gameBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith, gameBgHeight);
             gameBackground.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2, Screen.height / 2, 0.0f);
         }
-        Debug.Log("gameBackground.position:" + gameBackground.GetComponent<RectTransform>().position);
-        
+        // Debug.Log("gameBackground.position:" + gameBackground.GetComponent<RectTransform>().position);
+
         branch.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.75f, gameBgHeight * 0.2f);
         if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
         {
@@ -162,16 +189,34 @@ public class GridUI : MonoBehaviour
         {
             branch.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 - gameBgWith * (0.5f - 0.75f / 2), gameBgHeight - gameBgHeight * 0.20f / 2, 0.0f);
         }
-       
+
         targetBoard.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.15f, gameBgHeight * 0.1f);
         if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
         {
-            targetBoard.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 , gameBgHeight - gameBgHeight * 0.1f / 2, 0.0f);
+            targetBoard.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2, gameBgHeight - gameBgHeight * 0.1f / 2, 0.0f);
         }
         else
         {
-            targetBoard.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 , gameBgHeight - gameBgHeight * 0.1f / 2, 0.0f);
+            targetBoard.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2, gameBgHeight - gameBgHeight * 0.1f / 2, 0.0f);
         }
+    }
+
+    internal static MyWindowData getMyWindowDataObj()
+    {
+        if (myWindowData != null)
+        {
+            return myWindowData;
+        }
+        return null;
+    }
+
+    internal static List<List<GridBean>> getGridListManager()
+    {
+        if (gridListManager != null)
+        {
+            return gridListManager;
+        }
+        return null;
     }
 
     private void initUI()
@@ -179,12 +224,22 @@ public class GridUI : MonoBehaviour
         //[0]初始化父控件
         GridBg = new GameObject();
         Grid = new GameObject();
+        gameObjManager.grid = Grid;
+        gameObjManager.gridBg = GridBg;
         GridBg.AddComponent<RectTransform>();
         Grid.AddComponent<RectTransform>();
         GridBg.name = "GridBg";
         Grid.name = "Grid";
         GridBg.GetComponent<RectTransform>().SetParent(mainCanvas.transform);
         Grid.GetComponent<RectTransform>().SetParent(mainCanvas.transform);
+
+        //加载元素类型资源
+        for (int i = 0; i < resourcesId.Length; i++)
+        {
+            Sprite sprite = new Sprite();
+            sprite = Resources.Load<Sprite>(resourcesId[i]) as Sprite;
+            sprites.Add(sprite);
+        }
 
         //[1]读取配置，设置关卡目标类型和数量
         //jsonPath = Application.dataPath;
@@ -201,7 +256,7 @@ public class GridUI : MonoBehaviour
         targetGrid.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.1f * 0.7f, gameBgWith * 0.1f * 0.7f);
         if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
         {
-            targetGrid.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2/3, 0.0f);
+            targetGrid.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 3, 0.0f);
         }
         else
         {
@@ -220,19 +275,20 @@ public class GridUI : MonoBehaviour
         targetCount.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.1f * 0.7f, gameBgWith * 0.1f * 0.7f);
         if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
         {
-            targetCount.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f * 2/3, 0.0f);
+            targetCount.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f * 2 / 3, 0.0f);
         }
         else
         {
-            targetCount.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f * 2 / 3 , 0.0f);
+            targetCount.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f * 2 / 3, 0.0f);
         }
+        myWindowData.targetTypeObj = targetGrid;
+        myWindowData.targetCountCountObj = targetCount;
 
         //[2]设置格子大小 
         gameData = new GameData();
         gameData.horizontal = 9;
         gameData.vertical = 9;
         leaveSize = 0;
-        Debug.Log("leaveSize:"+ leaveSize);
         intervalPx = 1.0f;
         if (Screen.height >= Screen.width)
         {
@@ -259,7 +315,7 @@ public class GridUI : MonoBehaviour
 
         interval = gridSize + intervalPx;
 
-        //[3]动态绘制元素
+        //[3]动态创建元素
         //[3.1]设置每一列元素的初始位置 x 
         if (Screen.height >= Screen.width)
         {
@@ -282,7 +338,7 @@ public class GridUI : MonoBehaviour
                 {
                     GameObject gridbase = Instantiate(Resources.Load("prefabs/gridbase"), GridBg.transform) as GameObject;
                     Destroy(gridbase.GetComponent<SpriteRenderer>());
-                    gridbase.name = "gridbase" + vertical.ToString() + (horizontal-1).ToString();
+                    gridbase.name = "gridbase" + vertical.ToString() + (horizontal - 1).ToString();
                     gridbase.AddComponent<Image>();
                     gridbase.GetComponent<Image>().sprite = spriteGridBg;
                     gridbase.GetComponent<RectTransform>().position = new Vector3(x, y, 0);
@@ -295,7 +351,8 @@ public class GridUI : MonoBehaviour
                 grid.AddComponent<Image>();
                 GridBean gridBean = new GridBean();
                 gridBean.spritesIndex = UnityEngine.Random.Range(0, 6);
-                grid.GetComponent<Image>().sprite = sprites[gridBean.spritesIndex];
+                gridBean.sprite = sprites[gridBean.spritesIndex];
+                grid.GetComponent<Image>().sprite = gridBean.sprite;
                 grid.GetComponent<RectTransform>().position = new Vector3(x, y, 0);
                 grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                 gridBean.gridObject = grid;
@@ -307,6 +364,7 @@ public class GridUI : MonoBehaviour
                     gridBean.listVertical = vertical;
                     grid.name = "grid" + gridBean.listVertical.ToString() + gridBean.listHorizontal.ToString();
                     grid.SetActive(false);
+                    gridBean.isTop = true;
                     gridDropList.Add(gridBean);
                 }
 
@@ -316,11 +374,13 @@ public class GridUI : MonoBehaviour
                     gridBean.listHorizontal = horizontal - 1;
                     gridBean.listVertical = vertical;
                     grid.name = "grid" + gridBean.listVertical.ToString() + gridBean.listHorizontal.ToString();
+                    gridBean.isTop = false;
                     gridList.Add(gridBean);
                 }
             }
 
             gridListManager.Add(gridList);
+            gameObjManager.gridListManager = gridListManager;
         }
     }
 
@@ -329,6 +389,17 @@ public class GridUI : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            if (gameObjManager.isUpdateGridListManager)
+            {
+                gridListManager = gameObjManager.gridListManager;
+                gameObjManager.isUpdateGridListManager = false;
+            }
+            if (myWindowData.isUpdataTarget)
+            {
+                myWindowData.isUpdataTarget = false;
+                deleteCounts = 0;
+            }
+
             //[1]隐藏目标完成后的对象
             great.SetActive(false);
 
@@ -349,8 +420,6 @@ public class GridUI : MonoBehaviour
             {
                 startHorizontal = (int)((y - Input.mousePosition.y) / (gridSize + intervalPx));
                 startVertical = (int)((Input.mousePosition.x - x) / (gridSize + intervalPx));
-                Debug.Log("startVertical:" + startVertical);
-                Debug.Log("startHorizontal:" + startHorizontal);
                 startPointX = gridListManager[startVertical][startHorizontal].gridObject.GetComponent<RectTransform>().position.x;
                 startPointY = gridListManager[startVertical][startHorizontal].gridObject.GetComponent<RectTransform>().position.y;
                 startPoint = new Vector3(startPointX, startPointY, 0.0f);
@@ -360,6 +429,7 @@ public class GridUI : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
+
             //[1]鼠标点中格子区域才会响应，记录划动经过的元素信息
             if (Input.mousePosition.x > x && Input.mousePosition.x < (x + gridSize * gameData.vertical + intervalPx * (gameData.vertical - 1)) && Input.mousePosition.y < y && Input.mousePosition.y > (y - ((gameData.horizontal * gridSize + intervalPx * (gameData.horizontal - 1)))))
             {
@@ -468,7 +538,7 @@ public class GridUI : MonoBehaviour
                             if (grid.listHorizontal == gridBean.listHorizontal)
                             {
                                 //[2]计算是否消除了目标类型
-                                if(grid.spritesIndex == myWindowData.targetType)
+                                if (grid.spritesIndex == myWindowData.targetType)
                                 {
                                     deleteCounts++;
                                 }
@@ -479,7 +549,6 @@ public class GridUI : MonoBehaviour
                         //[3]消除元素
                         Destroy(gridBean.gridObject);
                     }
-                    gridDrop();
 
                     //[4]刷新目标数量
                     if (deleteCounts >= myWindowData.targetCount)
@@ -495,7 +564,7 @@ public class GridUI : MonoBehaviour
                     else
                     {
                         //[4.2]仍未完成目标
-                        targetCount.GetComponent<Text>().text = "x" + (myWindowData.targetCount- deleteCounts);
+                        targetCount.GetComponent<Text>().text = "x" + (myWindowData.targetCount - deleteCounts);
                     }
                 }
             }
@@ -513,81 +582,13 @@ public class GridUI : MonoBehaviour
             }
 
             drawCounts = 0;
+
+            //[6]记录元素掉落信息
+            GridDrop.recordGridDropMsg(gameData, gridListManager, interval, gridDropList, Grid, sprites, gridSize);
         }
-    }
 
-    //格子补充函数，实现掉落效果
-    private void gridDrop()
-    {
-        //遍历所有列，若数量不等于9，则相应列进行掉落
-        for (int i = 0; i < gameData.vertical; i++)
-        {
-            if (gridListManager[i].Count < 9)
-            {
-                //遍历数组，从后往前检测是否需要移动补充空位 , 检测位置
-                for (int x = gridListManager[i].Count - 1, checkIndex = gameData.horizontal - 1; x >= 0; x--, checkIndex--)
-                {
-                    //判断剩余List的最后一个对象是否处于最大的位置
-                    if (gridListManager[i][x].listHorizontal == checkIndex)
-                    {
-                        if (x != 0)
-                            continue;
-                    }
-                    else
-                    {
-                        //下移格子数
-                        dropGridCounts = checkIndex - gridListManager[i][x].listHorizontal;
-                        //下移的距离
-                        dropHeight = dropGridCounts * interval;
-                        //修改GridBean下移后的listHorizontal信息
-                        gridListManager[i][x].listHorizontal += dropGridCounts;
-                        //修改GridBean下以后的GameObject的位置信息
-                        gridListManager[i][x].gridObject.GetComponent<RectTransform>().position += new Vector3(0.0f, -dropHeight, 0.0f);
-                    }
-
-                    //补充元素
-                    if (x == 0)
-                    {
-                        for (int y = checkIndex; y > 0; y--)
-                        {
-                            //获取下落位置的元素信息，以作为补充使用
-                            Vector3 newDropPosition = gridDropList[i].gridObject.GetComponent<RectTransform>().position;
-                            int newDropHorizontal = gridDropList[i].listHorizontal;
-
-                            //下移的距离
-                            dropHeight = y * interval;
-
-                            //将掉落元素下移一位，修改相关信息
-                            gridDropList[i].gridObject.GetComponent<RectTransform>().position += new Vector3(0.0f, -dropHeight, 0.0f);
-                            gridDropList[i].listHorizontal += (y - 1);
-                            gridDropList[i].gridObject.name = "grid" + i.ToString() + gridDropList[i].listHorizontal.ToString();
-                            gridDropList[i].gridObject.SetActive(true);
-
-                            //管理所有列的List对象对应添加元素
-                            gridListManager[i].Insert(0, gridDropList[i]);
-
-                            //移除掉落备用List对应位置的元素
-                            gridDropList.RemoveAt(i);
-
-                            //在下移的掉落对象位置，创建一个元素备用，添加于掉落备用List中
-                            GameObject grid = Instantiate(Resources.Load("prefabs/grid"), Grid.transform) as GameObject;
-                            Destroy(grid.GetComponent<SpriteRenderer>());
-                            grid.AddComponent<Image>();
-                            GridBean gridBean = new GridBean();
-                            gridBean.spritesIndex = UnityEngine.Random.Range(0, 6);
-                            grid.GetComponent<Image>().sprite = sprites[gridBean.spritesIndex];
-                            grid.GetComponent<RectTransform>().position = newDropPosition;
-                            grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
-                            grid.name = "grid" + i.ToString() + newDropHorizontal.ToString();
-                            grid.SetActive(false);
-                            gridBean.gridObject = grid;
-                            gridBean.listHorizontal = newDropHorizontal;
-                            gridBean.listVertical = i;
-                            gridDropList.Insert(i, gridBean);
-                        }
-                    }
-                }
-            }
-        }
+        //[7]进行元素掉落
+        if (gameData != null && gridListManager != null)
+            GridDrop.gridDrop(gameData, gridListManager, gridSize);
     }
 }
