@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +11,8 @@ public class SceneEditor : MonoBehaviour
     public GameObject Arrows;//箭头对象
     public GameObject inputPlayLevel;//关卡输入框
     public GameObject inputTargetTypeCounts;//目标类型消除数量
-    public GameObject targetTypeChoose;
+    public GameObject targetTypeChoose;//目标类型选择对象
+    public GameObject inputStepCounts;//关卡可用步数
 
     private float gridTypeBackgroundHeight;//元素背景的中心店高度
     private float gridTypeChoosePositionY;//元素选择列表各类型的positionY值
@@ -28,13 +28,18 @@ public class SceneEditor : MonoBehaviour
     private int currentIndex;//当前元素列表的索引
     private int startHorizontal; //当前鼠标点击格子的行数
     private int startVertical;//当前鼠标点击格子的列数
-    private MyWindowData myWindowData;
+    private EditorData editorData;
 
     private List<List<GridBean>> gridOfEditorManager;
     private List<GridBean> gridList;
 
     private List<List<GridBean>> gridListManager;
+    private List<List<GridBaseBean>> gridBaseListManager;
     private int targetTypeIndex;
+    private string gridOfEditorManagerToJson = null;
+    private List<GridBean> gridDataList;
+    private EditorData editorDataFromJson;
+    private bool isInit = true;
 
     internal static EditorObjManager getGridTypeChoose()
     {
@@ -56,9 +61,6 @@ public class SceneEditor : MonoBehaviour
 
         //初始化格子类型选择内容
         initGridTypeChooseContent();
-
-        //初始化格子布局
-        initGridContentSet();
     }
 
     //初始化格子类型选择列表
@@ -106,6 +108,7 @@ public class SceneEditor : MonoBehaviour
         interval = gridSize + intervalPx;
         x = leaveSize / 2 + gridSize / 2;
 
+        //初始化格子内容布局
         gridOfEditorManager = new List<List<GridBean>>();
         for (int vertical = 0; vertical < 9; vertical++, x = x + interval)
         {
@@ -117,9 +120,26 @@ public class SceneEditor : MonoBehaviour
                 Destroy(grid.GetComponent<SpriteRenderer>());
                 grid.AddComponent<Image>();
                 GridBean gridBean = new GridBean();
-                gridBean.sprite = sprites[0];
-                gridBean.spritesIndex = 0;
-                grid.GetComponent<Image>().sprite = gridBean.sprite;
+                foreach (GridBean gridData in gridDataList)
+                {
+                    if (vertical == gridData.listVertical && horizontal == gridData.listHorizontal)
+                    {
+                        if (gridData.spritesIndex == -1)
+                        {
+                            gridBean.spritesIndex = 1;
+                        }
+                        else
+                        {
+                            gridBean.spritesIndex = gridData.spritesIndex + 2;
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        gridBean.spritesIndex = 0;
+                    }
+                }
+                grid.GetComponent<Image>().sprite = sprites[gridBean.spritesIndex];
                 grid.GetComponent<RectTransform>().position = new Vector3(x, y, 0);
                 grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                 grid.AddComponent<Button>();
@@ -146,6 +166,7 @@ public class SceneEditor : MonoBehaviour
     public void onOpenEditorClick()
     {
         gameObjeManager = GridUI.getMainCanvasManager();
+        
         if (gameObjeManager != null)
         {
             gameObjeManager.gameBackground.SetActive(false);
@@ -154,9 +175,49 @@ public class SceneEditor : MonoBehaviour
         }
         sceneEditor.SetActive(true);
         gridTypeBackground.SetActive(false);
-
+        
         //获得目标类型和数量的管理对象
-        myWindowData = GridUI.getMyWindowDataObj();
+        editorData = GridUI.getMyWindowDataObj();
+
+        if (isInit)
+        {
+            //读取配置内容，根据当前关卡显示编辑器设置
+            initData();
+
+            //初始化格子布局
+            initGridContentSet();
+
+            isInit = false;
+        }
+        
+    }
+
+    private void initData()
+    {
+        editorDataFromJson = JsonUtil.gridDataToList(3);
+
+        //获取配置关卡，显示类型等信息
+        inputPlayLevel.GetComponent<InputField>().text = editorDataFromJson.playLevel.ToString();
+        targetTypeChoose.GetComponent<Image>().sprite = sprites[editorDataFromJson.targetType + 2];
+        inputStepCounts.GetComponent<InputField>().text = editorDataFromJson.stepCounts.ToString();
+        inputTargetTypeCounts.GetComponent<InputField>().text = editorDataFromJson.targetCounts.ToString();
+        targetTypeIndex = editorDataFromJson.targetType + 2;
+
+        //解析格子内容
+        string[] gridDatas = editorDataFromJson.gridOfEditorManagerData.Split(',');
+        gridDataList = new List<GridBean>();
+        foreach (string grid in gridDatas)
+        {
+            if (!grid.Equals(""))
+            {
+                string[] result = grid.Split('|');
+                GridBean gridBean = new GridBean();
+                gridBean.listVertical = int.Parse(result[0]);
+                gridBean.listHorizontal = int.Parse(result[1]);
+                gridBean.spritesIndex = int.Parse(result[2]);
+                gridDataList.Add(gridBean);
+            }
+        }
     }
 
     //确定按钮点击事件
@@ -175,7 +236,7 @@ public class SceneEditor : MonoBehaviour
         //将编辑器数据传递给游戏场景显示
         //获取管理游戏元素的GridListManager
         gridListManager = gameObjeManager.gridListManager;
-
+        gridBaseListManager = gameObjeManager.gridBaseListManager;
         for (int vertical = 0; vertical < 9; vertical++)
         {
             for (int horizontal = 0; horizontal < 9; horizontal++)
@@ -183,42 +244,54 @@ public class SceneEditor : MonoBehaviour
                 //产生随机元素
                 if (gridOfEditorManager[vertical][horizontal].spritesIndex == 0)
                 {
+                    gridListManager[vertical][horizontal].gridObject.SetActive(true);
+                    gridBaseListManager[vertical][horizontal].gridBase.SetActive(true);
                     gridListManager[vertical][horizontal].spritesIndex = UnityEngine.Random.Range(0, 6);
                     gridListManager[vertical][horizontal].gridObject.GetComponent<Image>().sprite = gameObjeManager.sprites[gridListManager[vertical][horizontal].spritesIndex];
+                    gridBaseListManager[vertical][horizontal].isHasGrid = true;
+                    gridBaseListManager[vertical][horizontal].spriteIndex = gridListManager[vertical][horizontal].spritesIndex;
                 }
 
                 //不显示元素，挖空格子
                 if (gridOfEditorManager[vertical][horizontal].spritesIndex == 1)
                 {
                     gridListManager[vertical][horizontal].gridObject.SetActive(false);
+                    gridBaseListManager[vertical][horizontal].gridBase.SetActive(false);
+                    gridBaseListManager[vertical][horizontal].isHasGrid = true;
+                    gridBaseListManager[vertical][horizontal].spriteIndex = -1;
                 }
 
                 //固定元素
                 if (gridOfEditorManager[vertical][horizontal].spritesIndex > 1)
                 {
+                    gridListManager[vertical][horizontal].gridObject.SetActive(true);
+                    gridBaseListManager[vertical][horizontal].gridBase.SetActive(true);
                     gridListManager[vertical][horizontal].spritesIndex = gridOfEditorManager[vertical][horizontal].spritesIndex - 2;
                     gridListManager[vertical][horizontal].gridObject.GetComponent<Image>().sprite = gameObjeManager.sprites[gridListManager[vertical][horizontal].spritesIndex];
+                    gridBaseListManager[vertical][horizontal].isHasGrid = true;
+                    gridBaseListManager[vertical][horizontal].spriteIndex = gridListManager[vertical][horizontal].spritesIndex;
+
                 }
             }
         }
 
-        gameObjeManager.gridListManager = gridListManager;
-        gameObjeManager.isUpdateGridListManager = true;
-
         //更新消除类型和数量
         if (inputPlayLevel.GetComponent<InputField>().text != null)
         {
-            myWindowData.playLevel = int.Parse(inputPlayLevel.GetComponent<InputField>().text);
-            myWindowData.isUpdataTarget = true;
+            editorData.playLevel = int.Parse(inputPlayLevel.GetComponent<InputField>().text);
         }
         if(inputTargetTypeCounts.GetComponent<InputField>().text != null)
         { 
-            myWindowData.targetCount = int.Parse(inputTargetTypeCounts.GetComponent<InputField>().text);
-            myWindowData.isUpdataTarget = true;
+            editorData.targetCounts = int.Parse(inputTargetTypeCounts.GetComponent<InputField>().text);
         }
-        myWindowData.targetTypeObj.GetComponent<Image>().sprite = sprites[targetTypeIndex];
-        myWindowData.targetType = targetTypeIndex - 2;
-        myWindowData.targetCountCountObj.GetComponent<Text>().text = "x" + myWindowData.targetCount;
+        if (inputStepCounts.GetComponent<InputField>().text != null)
+        {
+            editorData.stepCounts = int.Parse(inputStepCounts.GetComponent<InputField>().text);
+        }
+        editorData.targetTypeObj.GetComponent<Image>().sprite = sprites[targetTypeIndex];
+        editorData.targetType = targetTypeIndex - 2;
+        editorData.targetCountCountObj.GetComponent<Text>().text = "x" + editorData.targetCounts;
+        editorData.stepCountsObj.GetComponent<Text>().text = editorData.stepCounts.ToString();
     }
 
     //类型选择元素点击事件
@@ -230,19 +303,17 @@ public class SceneEditor : MonoBehaviour
         //隐藏元素类型选择列表
         gridTypeBackground.SetActive(false);
 
-        if(startVertical >=0 && startHorizontal >= 0)
+        currentIndex = (int)((Input.mousePosition.x - Screen.width * 0.1f / 2) / gridSize);
+        if (startVertical >=0 && startHorizontal >= 0)
         {
             //计算当前鼠标点击的是哪个类型
-            currentIndex = (int)((Input.mousePosition.x - Screen.width * 0.1f / 2) / gridSize);
             gridOfEditorManager[startVertical][startHorizontal].gridObject.GetComponent<Image>().sprite = sprites[currentIndex];
             gridOfEditorManager[startVertical][startHorizontal].spritesIndex = currentIndex;
         }
         else
         {
-            targetTypeIndex = (int)((Input.mousePosition.x - Screen.width * 0.1f / 2) / gridSize);
             //编辑器更新目标类型
-            targetTypeChoose.GetComponent<Image>().sprite = sprites[targetTypeIndex];
-            myWindowData.isUpdataTarget = true;
+            targetTypeChoose.GetComponent<Image>().sprite = sprites[currentIndex];
         }
     }
 
@@ -268,6 +339,7 @@ public class SceneEditor : MonoBehaviour
         x = leaveSize / 2;
         intervalPx = 1.0f;
         gridSize = (Screen.width - leaveSize - (9 - 1) * intervalPx) / 9;
+
         //[3]鼠标点中格子区域才会响应，记录初次点中的元素信息
         if (Input.mousePosition.x > x && Input.mousePosition.x < (x + gridSize * 9 + intervalPx * 8) && Input.mousePosition.y < y && Input.mousePosition.y > (y - ((9 * gridSize + intervalPx * 8))))
         {
@@ -281,7 +353,6 @@ public class SceneEditor : MonoBehaviour
             startHorizontal = -1;
             startVertical = -1;
         }
-
     }
 
     //刷新按钮点击事件
@@ -299,5 +370,30 @@ public class SceneEditor : MonoBehaviour
                 }
             }
         }
+    }
+
+    //导出配置点击事件
+    public void onOutputDataClick()
+    {
+        //解析gridOfEditorManager数据
+        for (int vertical = 0; vertical < 9; vertical++)
+        {
+            for (int horizontal = 0; horizontal < 9; horizontal++)
+            {
+                //产生随机元素
+                if (gridOfEditorManager[vertical][horizontal].spritesIndex != 0)
+                {
+                    gridOfEditorManagerToJson = gridOfEditorManagerToJson + vertical + "|" + horizontal + "|" + (gridOfEditorManager[vertical][horizontal].spritesIndex-2) + ",";
+                }
+            }
+        }
+
+        editorData.gridOfEditorManagerData = gridOfEditorManagerToJson;
+        //判断同一关卡配置是否存在
+
+        //点击确定再保存数据
+        JsonUtil.createPlayLevelData(editorData);
+
+        Debug.Log("outputData done!!!!!");
     }
 }

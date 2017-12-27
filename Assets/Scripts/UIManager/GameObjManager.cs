@@ -29,8 +29,13 @@ public class GameObjManager
     public List<List<GridBean>> gridListManager;
 
     /// <summary>
+    /// 游戏格子背景管理者
+    /// </summary>
+    public List<List<GridBaseBean>> gridBaseListManager;
+
+    /// <summary>
     /// 是否需要更新游戏内容格子的管理者
     /// </summary>
-    public bool isUpdateGridListManager;
+    public bool isUpdateGridListManager = false;
 
 }

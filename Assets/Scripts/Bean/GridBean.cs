@@ -28,6 +28,26 @@ public class GridBean
     public float dropHeight;
 
     /// <summary>
+    /// 横移的距离
+    /// </summary>
+    public float moveWidth;
+
+    /// <summary>
+    /// 横移的方向 -1为左边，1为右边
+    /// </summary>
+    public int moveDirection;
+
+    /// <summary>
+    /// 横移的次数
+    /// </summary>
+    public int moveCounts;
+
+    /// <summary>
+    /// 横移一格的距离
+    /// </summary>
+    public float hasMoveWidth;
+
+    /// <summary>
     /// 下落的格子数
     /// </summary>
     public int dropCounts;
@@ -38,8 +58,18 @@ public class GridBean
     public bool isTop;
 
     /// <summary>
-    /// 元素的类型
+    /// 从其他列补充的掉落距离
     /// </summary>
-    public Sprite sprite;
+    public float dropHeightFromOther;
+
+    /// <summary>
+    /// 从其他列补充的掉落次数
+    /// </summary>
+    public int dropHeightFromOtherCounts;
+
+    /// <summary>
+    /// 掉落一格的距离
+    /// </summary>
+    public float hasDropHeight;
 
 }

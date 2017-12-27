@@ -222,12 +222,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Animator\GridDrop.cs" />
+    <Compile Include="Assets\Scripts\Bean\EditorData.cs" />
     <Compile Include="Assets\Scripts\Bean\GameData.cs" />
+    <Compile Include="Assets\Scripts\Bean\GridBaseBean.cs" />
     <Compile Include="Assets\Scripts\Bean\GridBean.cs" />
-    <Compile Include="Assets\Scripts\Bean\MyWindowData.cs" />
     <Compile Include="Assets\Scripts\SceneEditor\EditorObjManager.cs" />
     <Compile Include="Assets\Scripts\SceneEditor\SceneEditor.cs" />
-    <Compile Include="Assets\Scripts\Test\DropTest.cs" />
     <Compile Include="Assets\Scripts\UIManager\GameObjManager.cs" />
     <Compile Include="Assets\Scripts\UIManager\GridUI.cs" />
     <Compile Include="Assets\Scripts\Utils\JsonUtil.cs" />
