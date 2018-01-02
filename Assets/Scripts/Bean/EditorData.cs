@@ -56,5 +56,10 @@ public class EditorData
     /// <summary>
     /// 元素格子数据
     /// </summary>
-    public string gridOfEditorManagerData;
+    public string gridData;
+
+    /// <summary>
+    /// 传送门数据
+    /// </summary>
+    public string doorData;
 }

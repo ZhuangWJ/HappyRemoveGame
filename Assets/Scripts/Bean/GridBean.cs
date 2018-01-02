@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class GridBean
 {
@@ -68,8 +69,50 @@ public class GridBean
     public int dropHeightFromOtherCounts;
 
     /// <summary>
+    /// 是否进入传送门入口
+    /// </summary>
+    public bool isDropInDoor;
+
+    /// <summary>
+    /// 是否从传送门出口出来
+    /// </summary>
+    public bool isDropOutDoor;
+
+    /// <summary>
     /// 掉落一格的距离
     /// </summary>
     public float hasDropHeight;
 
+    /// <summary>
+    /// 是否需要被清楚
+    /// </summary>
+    public bool isDestroy;
+
+    public static GridBean mClone(GridBean copyGridBean , GameObject Grid)
+    {
+        GridBean gridBean = new GridBean();
+        GameObject gridObject = new GameObject();
+        gridObject.AddComponent<RectTransform>();
+        gridObject.GetComponent<RectTransform>().position = copyGridBean.gridObject.GetComponent<RectTransform>().position;
+        gridObject.GetComponent<RectTransform>().sizeDelta = copyGridBean.gridObject.GetComponent<RectTransform>().sizeDelta;
+        gridObject.AddComponent<Image>();
+        gridObject.GetComponent<Image>().sprite = copyGridBean.gridObject.GetComponent<Image>().sprite;
+        gridObject.transform.SetParent(Grid.transform);
+
+        gridBean.gridObject = gridObject;
+        gridBean.dropCounts = copyGridBean.dropCounts;
+        gridBean.dropHeight = copyGridBean.dropHeight;
+        gridBean.dropHeightFromOther = copyGridBean.dropHeightFromOther;
+        gridBean.dropHeightFromOtherCounts = copyGridBean.dropHeightFromOtherCounts;
+        gridBean.hasDropHeight = copyGridBean.hasDropHeight;
+        gridBean.hasMoveWidth = copyGridBean.hasMoveWidth;
+        gridBean.isTop = copyGridBean.isTop;
+        gridBean.listHorizontal = copyGridBean.listHorizontal;
+        gridBean.listVertical = copyGridBean.listVertical;
+        gridBean.moveCounts = copyGridBean.moveCounts;
+        gridBean.moveDirection = copyGridBean.moveDirection;
+        gridBean.moveWidth = copyGridBean.moveWidth;
+        gridBean.spritesIndex = copyGridBean.spritesIndex;
+        return gridBean;
+    }
 }
