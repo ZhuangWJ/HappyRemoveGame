@@ -52,6 +52,7 @@ public class JsonUtil
         editorData.targetType = obj.targetType;
         editorData.targetCounts = obj.targetCounts;
         editorData.doorData = obj.doorData;
+        editorData.iceData = obj.iceData;
         return editorData;
     }
 }

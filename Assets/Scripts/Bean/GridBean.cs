@@ -88,6 +88,12 @@ public class GridBean
     /// </summary>
     public bool isDestroy;
 
+    /// <summary>
+    /// GridBean的复制方法
+    /// </summary>
+    /// <param name="copyGridBean"></param>
+    /// <param name="Grid"></param>
+    /// <returns></returns>
     public static GridBean mClone(GridBean copyGridBean , GameObject Grid)
     {
         GridBean gridBean = new GridBean();

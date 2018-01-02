@@ -5,9 +5,10 @@ using UnityEngine.UI;
 
 public class GridUI : MonoBehaviour
 {
-    private static string[] resourcesId = new string[] { "monkey", "panda", "chicken", "penguin", "pig", "rabbit" };
+    private static string[] gridTpyeId = new string[] { "monkey", "panda", "chicken", "penguin", "pig", "rabbit" };
     private static List<Sprite> sprites = new List<Sprite>();
-    public Sprite spriteGridBg;
+    private static string[] gridBaseTpyeId = new string[] { "gridbase", "ice1", "ice2", "ice3" };
+    private static List<Sprite> baseSprites = new List<Sprite>();
     public Sprite spriteDoor;
     public GameObject mainCanvas;
     public Font songTi;
@@ -65,6 +66,8 @@ public class GridUI : MonoBehaviour
     private int startListIndex;
     private List<DoorBean> doorDataList;
     private Vector3 doorPoint;
+    private List<IceBean> iceDataList;
+    private int mIceLevel;
 
     // Use this for initialization
     void Start()
@@ -85,13 +88,13 @@ public class GridUI : MonoBehaviour
         GridDrop.initGridDrop(gameData, gridListManager, interval, gridDropList, Grid, sprites, gridSize, gridBaseListManager, doorDataList);
 
         //初始化SceneEditor，传送数据
-        SceneEditor.initSceneEditor(editorData, sprites, gridListManager, gridBaseListManager, GameBackground, Grid, GridBg, gridDataList, doorDataList);
+        SceneEditor.initSceneEditor(editorData, sprites, baseSprites, gridListManager, gridBaseListManager, GameBackground, Grid, GridBg, gridDataList, doorDataList, iceDataList);
     }
 
     private void initData()
     {
         //[1]获取格子内容信息
-        editorData = JsonUtil.getEditorData(1);
+        editorData = JsonUtil.getEditorData(6);
         if (!editorData.gridData.Equals(""))
         {
             string[] gridDatas = editorData.gridData.Split(',');
@@ -110,7 +113,7 @@ public class GridUI : MonoBehaviour
             }
         }
 
-        //[2]获取场景元素信息，例如传送门，树藤，障碍物等
+        //[2]获取传送门数据
         if (!editorData.doorData.Equals(""))
         {
             string[] doorDatas = editorData.doorData.Split(',');
@@ -126,6 +129,25 @@ public class GridUI : MonoBehaviour
                     doorBean.outVertical = int.Parse(result[2]);
                     doorBean.outHorizontal = int.Parse(result[3]);
                     doorDataList.Add(doorBean);
+                }
+            }
+        }
+
+        //[3]获取冰块数据
+        if (!editorData.iceData.Equals(""))
+        {
+            string[] iceDatas = editorData.iceData.Split(',');
+            iceDataList = new List<IceBean>();
+            foreach (string ice in iceDatas)
+            {
+                if (!ice.Equals(""))
+                {
+                    string[] result = ice.Split('|');
+                    IceBean iceBean = new IceBean();
+                    iceBean.iceVertical = int.Parse(result[0]);
+                    iceBean.iceHorizontal = int.Parse(result[1]);
+                    iceBean.iceLevel = int.Parse(result[2]);
+                    iceDataList.Add(iceBean);
                 }
             }
         }
@@ -243,11 +265,19 @@ public class GridUI : MonoBehaviour
         Grid.GetComponent<RectTransform>().SetParent(mainCanvas.transform);
 
         //加载元素类型资源
-        for (int i = 0; i < resourcesId.Length; i++)
+        for (int i = 0; i < gridTpyeId.Length; i++)
         {
             Sprite sprite = new Sprite();
-            sprite = Resources.Load<Sprite>(resourcesId[i]) as Sprite;
+            sprite = Resources.Load<Sprite>(gridTpyeId[i]) as Sprite;
             sprites.Add(sprite);
+        }
+
+        //加载元素背景类型资源
+        for (int i = 0; i < gridBaseTpyeId.Length; i++)
+        {
+            Sprite sprite = new Sprite();
+            sprite = Resources.Load<Sprite>(gridBaseTpyeId[i]) as Sprite;
+            baseSprites.Add(sprite);
         }
 
         //[1]读取配置，设置关卡目标类型和数量
@@ -264,7 +294,10 @@ public class GridUI : MonoBehaviour
         targetGrid.name = "targetGrid";
         Destroy(targetGrid.GetComponent<SpriteRenderer>());
         targetGrid.AddComponent<Image>();
-        targetGrid.GetComponent<Image>().sprite = sprites[editorData.targetType];
+        if (editorData.targetType >= 11 && editorData.targetType <= 13)
+            targetGrid.GetComponent<Image>().sprite = baseSprites[editorData.targetType - 10];
+        else
+            targetGrid.GetComponent<Image>().sprite = sprites[editorData.targetType];
         targetGrid.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.1f * 0.7f, gameBgWith * 0.1f * 0.7f);
         if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
             targetGrid.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4, 0.0f);
@@ -350,12 +383,32 @@ public class GridUI : MonoBehaviour
                     Destroy(gridbase.GetComponent<SpriteRenderer>());
                     gridbase.name = "gridbase" + vertical.ToString() + (horizontal - 1).ToString();
                     gridbase.AddComponent<Image>();
-                    gridbase.GetComponent<Image>().sprite = spriteGridBg;
+                    gridbase.GetComponent<Image>().sprite = baseSprites[0];
                     gridbase.GetComponent<RectTransform>().position = new Vector3(x, y, 0);
                     gridbase.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                     GridBaseBean gridBaseBean = new GridBaseBean();
                     gridBaseBean.gridBase = gridbase;
                     gridBaseList.Add(gridBaseBean);
+                }
+
+                //[3.31]生成冰块
+                if (iceDataList != null && horizontal != 0)
+                {
+                    foreach (IceBean iceBean in iceDataList)
+                    {
+                        if (iceBean.iceVertical == vertical && iceBean.iceHorizontal == horizontal - 1)
+                        {
+                            GameObject ice = Instantiate(Resources.Load("prefabs/gridbase"), GridBg.transform) as GameObject;
+                            Destroy(ice.GetComponent<SpriteRenderer>());
+                            ice.name = "ice" + iceBean.iceVertical.ToString() + iceBean.iceHorizontal.ToString();
+                            ice.AddComponent<Image>();
+                            ice.GetComponent<Image>().sprite = baseSprites[iceBean.iceLevel];
+                            ice.GetComponent<RectTransform>().position = new Vector3(x, y, 0);
+                            ice.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
+                            iceBean.ice = ice;
+                            break;
+                        }
+                    }
                 }
 
                 //[3.4]生成元素
@@ -443,31 +496,34 @@ public class GridUI : MonoBehaviour
         }
 
         //[4]生成场景元素，例如传送门、树藤、障碍物等
-        foreach (DoorBean doorbean in doorDataList)
+        if (doorDataList != null)
         {
-            //入口
-            GameObject indoor = Instantiate(Resources.Load("prefabs/gridbase"), GridBg.transform) as GameObject;
-            Destroy(indoor.GetComponent<SpriteRenderer>());
-            indoor.name = "indoor" + doorbean.inVertical.ToString() + doorbean.inHorizontal.ToString();
-            indoor.AddComponent<Image>();
-            indoor.GetComponent<Image>().sprite = spriteDoor;
-            doorPoint = gridListManager[doorbean.inVertical][doorbean.inHorizontal].gridObject.GetComponent<RectTransform>().position;
-            indoor.GetComponent<RectTransform>().position = doorPoint + new Vector3(0.0f, -gridSize * 2 / 3, 0.0f);
-            indoor.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
-            indoor.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
-            doorbean.indoor = indoor;
+            foreach (DoorBean doorbean in doorDataList)
+            {
+                //入口
+                GameObject indoor = Instantiate(Resources.Load("prefabs/gridbase"), GridBg.transform) as GameObject;
+                Destroy(indoor.GetComponent<SpriteRenderer>());
+                indoor.name = "indoor" + doorbean.inVertical.ToString() + doorbean.inHorizontal.ToString();
+                indoor.AddComponent<Image>();
+                indoor.GetComponent<Image>().sprite = spriteDoor;
+                doorPoint = gridListManager[doorbean.inVertical][doorbean.inHorizontal].gridObject.GetComponent<RectTransform>().position;
+                indoor.GetComponent<RectTransform>().position = doorPoint + new Vector3(0.0f, -gridSize * 2 / 3, 0.0f);
+                indoor.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
+                indoor.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
+                doorbean.indoor = indoor;
 
-            //出口
-            GameObject outdoor = Instantiate(Resources.Load("prefabs/gridbase"), GridBg.transform) as GameObject;
-            Destroy(outdoor.GetComponent<SpriteRenderer>());
-            outdoor.name = "outdoor" + doorbean.outVertical.ToString() + doorbean.outHorizontal.ToString();
-            outdoor.AddComponent<Image>();
-            outdoor.GetComponent<Image>().sprite = spriteDoor;
-            doorPoint = gridListManager[doorbean.outVertical][doorbean.outHorizontal].gridObject.GetComponent<RectTransform>().position;
-            outdoor.GetComponent<RectTransform>().position = doorPoint + new Vector3(0.0f, gridSize * 2 / 3, 0.0f);
-            outdoor.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
-            outdoor.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
-            doorbean.outdoor = outdoor;
+                //出口
+                GameObject outdoor = Instantiate(Resources.Load("prefabs/gridbase"), GridBg.transform) as GameObject;
+                Destroy(outdoor.GetComponent<SpriteRenderer>());
+                outdoor.name = "outdoor" + doorbean.outVertical.ToString() + doorbean.outHorizontal.ToString();
+                outdoor.AddComponent<Image>();
+                outdoor.GetComponent<Image>().sprite = spriteDoor;
+                doorPoint = gridListManager[doorbean.outVertical][doorbean.outHorizontal].gridObject.GetComponent<RectTransform>().position;
+                outdoor.GetComponent<RectTransform>().position = doorPoint + new Vector3(0.0f, gridSize * 2 / 3, 0.0f);
+                outdoor.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
+                outdoor.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
+                doorbean.outdoor = outdoor;
+            }
         }
     }
 
@@ -646,6 +702,37 @@ public class GridUI : MonoBehaviour
                                 gridBaseListManager[currenttVertical][gridBean.listHorizontal].isHasGrid = false;
                                 gridListManager[currenttVertical].RemoveAt(removeIndex);
                                 break;
+                            }
+                        }
+
+                        //判断元素底部是否有冰块
+                        if (iceDataList != null)
+                        {
+                            foreach (IceBean iceBean in iceDataList)
+                            {
+                                if (iceBean.iceVertical == currenttVertical && iceBean.iceHorizontal == gridBean.listHorizontal)
+                                {
+                                    mIceLevel = iceBean.iceLevel;
+                                    if (mIceLevel > 0)
+                                    {
+                                        mIceLevel--;
+                                        if (mIceLevel > 0)
+                                        {
+                                            iceBean.ice.GetComponent<Image>().sprite = baseSprites[mIceLevel];
+                                            iceBean.iceLevel = mIceLevel;
+                                        }
+                                        else
+                                        {
+                                            if (editorData.targetType == 11)
+                                            {
+                                                deleteCounts++;
+                                            }
+                                            Destroy(iceBean.ice);
+                                            iceDataList.Remove(iceBean);
+                                        }
+                                    }
+                                    break;
+                                }
                             }
                         }
 

@@ -19,12 +19,14 @@ public class SceneEditor : MonoBehaviour
     //所需接收GridUI数据的变量
     private static EditorData mEditorData;
     private static List<Sprite> mSprites;//元素资源列表数组
+    private static List<Sprite> mBaseSprites;//元素资源列表数组
     private static GameObject mGameBackground;
     private static GameObject mGridBg;
     private static GameObject mGrid;
     private static List<List<GridBean>> mGridListManager;//游戏场景中的格子管理者
     private static List<List<GridBaseBean>> mGridBaseListManager;//游戏场景中的格子背景管理者
     private static List<DoorBean> mDoorDataList;
+    private static List<IceBean> mIceDataList;
 
     private float gridTypeBackgroundHeight;//元素背景的中心店高度
     private float gridTypeChoosePositionY;//元素选择列表各类型的positionY值
@@ -32,6 +34,7 @@ public class SceneEditor : MonoBehaviour
     private float leaveSize = 0.0f;//屏幕宽度留白空间
     private float intervalPx = 1.0f;//相邻格子间隙
     private float gridSize;//格子类型选择的大小
+    private float originOfgridTypeBg;
     private float interval;//相邻格子中点坐标的间隔
     private float x; //作为边界或者元素坐标的x坐标变量
     private float y;//作为边界或者元素坐标的y坐标变量
@@ -40,7 +43,8 @@ public class SceneEditor : MonoBehaviour
     private int startVertical;//当前鼠标点击格子的列数
 
     private List<List<GridBean>> gridOfEditorManager; //编辑器格子管理者
-    private List<DoorBean> doorOfEditorManager;//编辑器游戏场景元素管理者
+    private List<DoorBean> doorOfEditorManager;//编辑器传送门管理者
+    private List<IceBean> iceOfEditorManager;//编辑器冰块管理者
     private List<GridBean> gridList;
     private int targetTypeIndex;
     private string gridDataToJson = null;
@@ -50,14 +54,18 @@ public class SceneEditor : MonoBehaviour
     private Vector3 doorPoint;
     private bool isCreateOne;
     private string doorDataToJson;
+    private int lines;
+    private Vector3 icePoint;
+    private string iceDataToJson;
 
     /// <summary>
     /// 接收GridUI的对象和数据
     /// </summary>
-    public static void initSceneEditor(EditorData editorData, List<Sprite> sprites, List<List<GridBean>> gridListManager, List<List<GridBaseBean>> gridBaseListManager, GameObject gameBackground, GameObject grid, GameObject gridBg, List<GridBean> gridDataList, List<DoorBean> doorDataList)
+    public static void initSceneEditor(EditorData editorData, List<Sprite> sprites, List<Sprite> baseSprites, List<List<GridBean>> gridListManager, List<List<GridBaseBean>> gridBaseListManager, GameObject gameBackground, GameObject grid, GameObject gridBg, List<GridBean> gridDataList, List<DoorBean> doorDataList, List<IceBean> iceDataList)
     {
         mEditorData = editorData;
         mSprites = sprites;
+        mBaseSprites = baseSprites;
         mGridListManager = gridListManager;
         mGridBaseListManager = gridBaseListManager;
         mGameBackground = gameBackground;
@@ -65,6 +73,7 @@ public class SceneEditor : MonoBehaviour
         mGrid = grid;
         mGridDataList = gridDataList;
         mDoorDataList = doorDataList;
+        mIceDataList = iceDataList;
     }
 
     // Use this for initialization
@@ -91,38 +100,54 @@ public class SceneEditor : MonoBehaviour
         indoor = Resources.Load<Sprite>("door") as Sprite;
         outdoor = Resources.Load<Sprite>("door") as Sprite;
 
-        mSprites.Add(visable);
-        mSprites.Add(random);
-        mSprites.Add(indoor);
-        mSprites.Add(outdoor);
-
-        gridSize = Screen.width / 10;
-        x = Arrows.GetComponent<RectTransform>().position.x;
-        y = Arrows.GetComponent<RectTransform>().position.y + 60;
-        Arrows.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize * 0.7f, gridSize * 0.7f);
-        for (int i = 0; i < mSprites.Count; i++)
+        if (mSprites != null)
         {
-            GameObject grid = Instantiate(Resources.Load("prefabs/grid"), gridTypeBackground.transform) as GameObject;
-            Destroy(grid.GetComponent<SpriteRenderer>());
-            grid.AddComponent<Image>();
-            grid.GetComponent<Image>().sprite = mSprites[i];
-            grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
-            grid.AddComponent<Button>();
-            grid.GetComponent<Button>().onClick.AddListener(onGridTypeClick);
-            grid.GetComponent<RectTransform>().position = new Vector3(gridSize / 2 + gridSize * i, y, 0);
+            //设置可选择类型
+            mSprites.Add(visable);
+            mSprites.Add(random);
+            mSprites.Add(indoor);
+            mSprites.Add(outdoor);
 
-            //如果是传送门出入口，则需要进行翻转
-            if (i == 8 || i == 9)
-                grid.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
-            //传送门入口
-            if (i == 8)
-                grid.GetComponent<RectTransform>().position = new Vector3(gridSize / 2 + gridSize * i, y - gridSize / 2, 0);
-            //传送门出口
-            if (i == 9)
-                grid.GetComponent<RectTransform>().position = new Vector3(gridSize / 2 + gridSize * i, y + gridSize / 2, 0);
+            foreach (Sprite sprite in mBaseSprites)
+            {
+                mSprites.Add(sprite);
+            }
 
-            GridBean gridBean = new GridBean();
-            gridBean.gridObject = grid;
+            gridSize = Screen.width / 10;
+            lines = (mSprites.Count - 1) / 10;
+            x = Arrows.GetComponent<RectTransform>().position.x;
+            y = Arrows.GetComponent<RectTransform>().position.y + gridSize * (lines + 1);
+            Arrows.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize * 0.7f, gridSize * 0.7f);
+            for (int i = 0; i < mSprites.Count; i++)
+            {
+                GameObject grid = Instantiate(Resources.Load("prefabs/grid"), gridTypeBackground.transform) as GameObject;
+                Destroy(grid.GetComponent<SpriteRenderer>());
+                grid.AddComponent<Image>();
+                grid.GetComponent<Image>().sprite = mSprites[i];
+                grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
+                grid.AddComponent<Button>();
+                grid.GetComponent<Button>().onClick.AddListener(onGridTypeClick);
+                lines = i / 10;
+                if (i > 9)
+                    grid.GetComponent<RectTransform>().position = new Vector3(gridSize / 2 + gridSize * (i - 10), y - lines * gridSize, 0);
+                else
+                    grid.GetComponent<RectTransform>().position = new Vector3(gridSize / 2 + gridSize * i, y - lines * gridSize, 0);
+                //如果是传送门出入口，则需要进行翻转
+                if (i == 8 || i == 9)
+                    grid.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
+                //传送门入口
+                if (i == 8)
+                    grid.GetComponent<RectTransform>().position = new Vector3(gridSize / 2 + gridSize * i, y - gridSize / 2, 0);
+                //传送门出口
+                if (i == 9)
+                    grid.GetComponent<RectTransform>().position = new Vector3(gridSize / 2 + gridSize * i, y + gridSize / 2, 0);
+
+                GridBean gridBean = new GridBean();
+                gridBean.gridObject = grid;
+            }
+
+            //根据选择类型个数，设置背景高度
+            gridTypeBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width, gridSize * (lines + 2));
         }
     }
 
@@ -200,6 +225,9 @@ public class SceneEditor : MonoBehaviour
         sceneEditor.SetActive(true);
         gridTypeBackground.SetActive(false);
 
+        //初始化游戏场景元素
+        initGameBg();
+
         if (isInit)
         {
             //读取配置内容，根据当前关卡显示编辑器设置
@@ -210,14 +238,11 @@ public class SceneEditor : MonoBehaviour
 
             isInit = false;
         }
-
-        //初始化游戏场景元素
-        initGameBg();
     }
 
     private void initGameBg()
     {
-        //设置编辑器游戏场景(传送门、树藤等)
+        //设置编辑器传送门
         if (mDoorDataList != null)
         {
             doorOfEditorManager = mDoorDataList;
@@ -251,6 +276,30 @@ public class SceneEditor : MonoBehaviour
                 outdoor.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                 outdoor.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
                 doorOfEditorManager[i].outdoor = outdoor;
+            }
+        }
+
+        //设置编辑器冰块
+        if (mIceDataList != null)
+        {
+            iceOfEditorManager = mIceDataList;
+            foreach (IceBean iceBean in iceOfEditorManager)
+            {
+                Destroy(iceBean.ice);
+            }
+            for (int i = 0; i < iceOfEditorManager.Count; i++)
+            {
+                GameObject ice = Instantiate(Resources.Load("prefabs/gridbase"), GridContentSet.transform) as GameObject;
+                Destroy(ice.GetComponent<SpriteRenderer>());
+                ice.name = "ice" + iceOfEditorManager[i].iceVertical.ToString() + iceOfEditorManager[i].iceHorizontal.ToString();
+                ice.AddComponent<Image>();
+                ice.GetComponent<Image>().sprite = mSprites[iceOfEditorManager[i].iceLevel + 10];
+                icePoint = mGridBaseListManager[iceOfEditorManager[i].iceVertical][iceOfEditorManager[i].iceHorizontal].gridBase.GetComponent<RectTransform>().position;
+                ice.GetComponent<RectTransform>().position = icePoint;
+                ice.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
+                ice.AddComponent<Button>();
+                ice.GetComponent<Button>().onClick.AddListener(onGridClick);
+                iceOfEditorManager[i].ice = ice;
             }
         }
     }
@@ -326,7 +375,7 @@ public class SceneEditor : MonoBehaviour
         mEditorData.targetCountCountObj.GetComponent<Text>().text = "x" + mEditorData.targetCounts;
         mEditorData.stepCountsObj.GetComponent<Text>().text = mEditorData.stepCounts.ToString();
 
-        //更新游戏场景内容
+        //更新传送门位置
         if (doorOfEditorManager != null)
         {
             mDoorDataList = doorOfEditorManager;
@@ -362,6 +411,27 @@ public class SceneEditor : MonoBehaviour
                 doorbean.outdoor = outdoor;
             }
         }
+
+        //更新冰块位置
+        if (iceOfEditorManager != null)
+        {
+            mIceDataList = iceOfEditorManager;
+            foreach(IceBean iceBean in mIceDataList)
+            {
+                Destroy(iceBean.ice);
+            }
+            foreach (IceBean iceBean in mIceDataList)
+            {
+                GameObject ice = Instantiate(Resources.Load("prefabs/gridbase"), mGridBg.transform) as GameObject;
+                Destroy(ice.GetComponent<SpriteRenderer>());
+                ice.name = "ice" + iceBean.iceVertical.ToString() + iceBean.iceHorizontal.ToString();
+                ice.AddComponent<Image>();
+                ice.GetComponent<Image>().sprite = mSprites[iceBean.iceLevel + 10];
+                ice.GetComponent<RectTransform>().position = mGridBaseListManager[iceBean.iceVertical][iceBean.iceHorizontal].gridBase.GetComponent<RectTransform>().position;
+                ice.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
+                iceBean.ice = ice;
+            }
+        }
     }
 
     //类型选择元素点击事件
@@ -369,7 +439,14 @@ public class SceneEditor : MonoBehaviour
     {
         //用于计算选择了哪个类型
         gridSize = Screen.width / 10;
-        currentIndex = (int)(Input.mousePosition.x / gridSize);
+
+        originOfgridTypeBg = gridTypeBackground.GetComponent<RectTransform>().position.y;
+        lines = (int)(Math.Abs(Input.mousePosition.y - originOfgridTypeBg) / (gridSize / 2));
+        if (lines > 0)
+            currentIndex = (int)(Input.mousePosition.x / gridSize);
+        else
+            currentIndex = 10 + (int)(Input.mousePosition.x / gridSize);
+        Debug.Log("lines:" + lines + ",currentIndex:" + currentIndex);
 
         //格子内容大小，用于计算坐标偏移
         gridSize = (Screen.width - leaveSize - (9 - 1) * intervalPx) / 9;
@@ -416,7 +493,6 @@ public class SceneEditor : MonoBehaviour
                     doorOfEditorManager = new List<DoorBean>();
                 doorOfEditorManager.Add(doorBean);
             }
-
         }
 
         //传送门出口坐标
@@ -466,6 +542,45 @@ public class SceneEditor : MonoBehaviour
             }
         }
 
+        //设置冰块
+        if (currentIndex >= 11 && currentIndex <= 13 && startVertical >= 0 && startHorizontal >= 0)
+        {
+            if (iceOfEditorManager.Count > 0)
+            {
+                for (int i = 0; i < iceOfEditorManager.Count; i++)
+                {
+                    //若已存在冰块，直接修改或者删除冰块，同一个格子，选择相同类型即去掉冰块
+                    if (iceOfEditorManager[i].iceVertical == startVertical && iceOfEditorManager[i].iceHorizontal == startHorizontal)
+                    {
+                        if (iceOfEditorManager[i].iceLevel != currentIndex - 10)
+                        {
+                            iceOfEditorManager[i].iceLevel = currentIndex - 10;
+                            iceOfEditorManager[i].ice.GetComponent<Image>().sprite = mSprites[currentIndex];
+                        }
+                        else
+                        {
+                            Destroy(iceOfEditorManager[i].ice);
+                            iceOfEditorManager.Remove(iceOfEditorManager[i]);
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        //生成新的冰块
+                        if (i == (iceOfEditorManager.Count - 1))
+                        {
+                            createIce(startVertical,startHorizontal, currentIndex);
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                createIce(startVertical, startHorizontal, currentIndex);
+            }
+        }
+
         //设置格子内容
         if (currentIndex <= 7 && startVertical >= 0 && startHorizontal >= 0)
         {
@@ -475,14 +590,38 @@ public class SceneEditor : MonoBehaviour
         }
 
         //设置消除类型
-        if (currentIndex < 6 && startVertical < 0 && startHorizontal < 0)
+        if (startVertical < 0 && startHorizontal < 0)
         {
             //编辑器更新目标类型
             targetTypeChoose.GetComponent<Image>().sprite = mSprites[currentIndex];
+            targetTypeIndex = currentIndex;
         }
 
         //隐藏元素类型选择列表
         gridTypeBackground.SetActive(false);
+    }
+
+    /// <summary>
+    /// 生成冰块
+    /// </summary>
+    private void createIce(int startVertical,int startHorizontal,int currentIndex)
+    {
+        GameObject ice = Instantiate(Resources.Load("prefabs/gridbase"), GridContentSet.transform) as GameObject;
+        Destroy(ice.GetComponent<SpriteRenderer>());
+        ice.name = "ice" + startVertical.ToString() + startHorizontal.ToString();
+        ice.AddComponent<Image>();
+        ice.GetComponent<Image>().sprite = mSprites[currentIndex];
+        icePoint = mGridBaseListManager[startVertical][startHorizontal].gridBase.GetComponent<RectTransform>().position;
+        ice.GetComponent<RectTransform>().position = icePoint;
+        ice.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
+        ice.AddComponent<Button>();
+        ice.GetComponent<Button>().onClick.AddListener(onGridClick);
+        IceBean iceBean = new IceBean();
+        iceBean.iceVertical = startVertical;
+        iceBean.iceHorizontal = startHorizontal;
+        iceBean.iceLevel = currentIndex - 10;
+        iceBean.ice = ice;
+        iceOfEditorManager.Add(iceBean);
     }
 
     //格子点击事件
@@ -516,12 +655,17 @@ public class SceneEditor : MonoBehaviour
         {
             startHorizontal = -1;
             startVertical = -1;
+
+            //设置选择类型的位置
+            gridTypeChoosePositionY = Input.mousePosition.y - (gridTypeBackgroundHeight + 50) / 2;
+            gridTypeBackground.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2, gridTypeChoosePositionY, 0.0f);
         }
     }
 
     //刷新按钮点击事件
     public void onReSetClick()
     {
+        //让所有格子变成随机
         for (int vertical = 0; vertical < 9; vertical++)
         {
             for (int horizontal = 0; horizontal < 9; horizontal++)
@@ -533,6 +677,26 @@ public class SceneEditor : MonoBehaviour
                     gridOfEditorManager[vertical][horizontal].gridObject.GetComponent<Image>().sprite = mSprites[7];
                 }
             }
+        }
+
+        //将游戏场景的元素清楚、传送门、冰块等
+        if (doorOfEditorManager != null)
+        {
+            for (int i = 0; i < doorOfEditorManager.Count; i++)
+            {
+                Destroy(doorOfEditorManager[i].indoor);
+                Destroy(doorOfEditorManager[i].outdoor);
+            }
+            doorOfEditorManager.RemoveRange(0, doorOfEditorManager.Count);
+        }
+
+        if (iceOfEditorManager != null)
+        {
+            for (int i = 0; i < iceOfEditorManager.Count; i++)
+            {
+                Destroy(iceOfEditorManager[i].ice);
+            }
+            iceOfEditorManager.RemoveRange(0, iceOfEditorManager.Count);
         }
     }
 
@@ -553,12 +717,21 @@ public class SceneEditor : MonoBehaviour
 
         if (mDoorDataList != null)
         {
-            for(int i = 0; i < mDoorDataList.Count; i++)
+            for (int i = 0; i < mDoorDataList.Count; i++)
             {
                 doorDataToJson = doorDataToJson + mDoorDataList[i].inVertical + "|" + mDoorDataList[i].inHorizontal + "|" + mDoorDataList[i].outVertical + "|" + mDoorDataList[i].outHorizontal + ",";
             }
+            mEditorData.doorData = doorDataToJson;
         }
-        mEditorData.doorData = doorDataToJson;
+
+        if(mIceDataList != null)
+        {
+            for (int i = 0; i < mIceDataList.Count; i++)
+            {
+                iceDataToJson = iceDataToJson + mIceDataList[i].iceVertical + "|" + mIceDataList[i].iceHorizontal + "|" + mIceDataList[i].iceLevel + ",";
+            }
+            mEditorData.iceData = iceDataToJson;
+        }
 
         //判断同一关卡配置是否存在
 

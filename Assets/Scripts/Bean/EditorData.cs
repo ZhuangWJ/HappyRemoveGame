@@ -62,4 +62,9 @@ public class EditorData
     /// 传送门数据
     /// </summary>
     public string doorData;
+
+    /// <summary>
+    /// 冰块数据
+    /// </summary>
+    public string iceData;
 }

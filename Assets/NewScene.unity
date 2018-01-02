@@ -1433,7 +1433,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1126868653
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2506,7 +2506,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fd02f44945c15442bfce39e1fff89a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spriteGridBg: {fileID: 21300000, guid: 1e928001ca855954192f69ec613d079d, type: 3}
   spriteDoor: {fileID: 21300000, guid: fee45f497c589074991c5e456f2fcf1f, type: 3}
   mainCanvas: {fileID: 1868997467}
   songTi: {fileID: 12800000, guid: 1b858a3de9051b841b531a56a6d83349, type: 3}

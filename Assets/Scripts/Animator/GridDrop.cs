@@ -86,35 +86,37 @@ public class GridDrop : MonoBehaviour
                             }
 
                             //若为传送门入口元素掉落，则掉落距离超过传送门下方格子，则开始隐藏
-                            foreach (DoorBean doorBean in mDoorDataList)
+                            if (mDoorDataList != null)
                             {
-                                if (doorBean.inVertical == i)
+                                foreach (DoorBean doorBean in mDoorDataList)
                                 {
-                                    gridHideInDoor = mGridBaseListManager[i][doorBean.inHorizontal].gridBase.GetComponent<RectTransform>().position.y;
-                                    if (mGridListManager[i][checkIndex].isDropInDoor && mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position.y <= gridHideInDoor)
+                                    if (doorBean.inVertical == i)
                                     {
-                                        mGridListManager[i][checkIndex].gridObject.SetActive(false);
-                                        mGridListManager[i][checkIndex].isDropInDoor = false;
-                                        break;
+                                        gridHideInDoor = mGridBaseListManager[i][doorBean.inHorizontal].gridBase.GetComponent<RectTransform>().position.y;
+                                        if (mGridListManager[i][checkIndex].isDropInDoor && mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position.y <= gridHideInDoor)
+                                        {
+                                            mGridListManager[i][checkIndex].gridObject.SetActive(false);
+                                            mGridListManager[i][checkIndex].isDropInDoor = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                //若为传送门出口元素掉落，则掉落距离超过传送门上方格子，则开始显示
+                                foreach (DoorBean doorBean in mDoorDataList)
+                                {
+                                    if (doorBean.outVertical == i)
+                                    {
+                                        gridShowOutDoor = (mGridBaseListManager[i][doorBean.outHorizontal].gridBase.GetComponent<RectTransform>().position + new Vector3(0.0f, mGridSize / 2, 0.0f)).y;
+                                        if (mGridListManager[i][checkIndex].isDropOutDoor && mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position.y <= gridShowOutDoor)
+                                        {
+                                            mGridListManager[i][checkIndex].gridObject.SetActive(true);
+                                            mGridListManager[i][checkIndex].isDropOutDoor = false;
+                                            break;
+                                        }
                                     }
                                 }
                             }
-
-                            //若为传送门出口元素掉落，则掉落距离超过传送门上方格子，则开始显示
-                            foreach (DoorBean doorBean in mDoorDataList)
-                            {
-                                if (doorBean.outVertical == i)
-                                {
-                                    gridShowOutDoor = (mGridBaseListManager[i][doorBean.outHorizontal].gridBase.GetComponent<RectTransform>().position + new Vector3(0.0f, mGridSize / 2, 0.0f)).y;
-                                    if (mGridListManager[i][checkIndex].isDropOutDoor && mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position.y <= gridShowOutDoor)
-                                    {
-                                        mGridListManager[i][checkIndex].gridObject.SetActive(true);
-                                        mGridListManager[i][checkIndex].isDropOutDoor = false;
-                                        break;
-                                    }
-                                }
-                            }
-
                             continue;
                         }
                         else
@@ -125,16 +127,19 @@ public class GridDrop : MonoBehaviour
 
                             //若为传送门入口列下移到最底部，则移除元素
                             isDelete = false;
-                            foreach (DoorBean doorBean in mDoorDataList)
+                            if (mDoorDataList != null)
                             {
-                                if (doorBean.inVertical == i)
+                                foreach (DoorBean doorBean in mDoorDataList)
                                 {
-                                    if (mGridListManager[doorBean.inVertical][checkIndex].isDestroy)
+                                    if (doorBean.inVertical == i)
                                     {
-                                        Destroy(mGridListManager[doorBean.inVertical][checkIndex].gridObject);
-                                        mGridListManager[doorBean.inVertical].RemoveAt(checkIndex);
-                                        isDelete = true;
-                                        break;
+                                        if (mGridListManager[doorBean.inVertical][checkIndex].isDestroy)
+                                        {
+                                            Destroy(mGridListManager[doorBean.inVertical][checkIndex].gridObject);
+                                            mGridListManager[doorBean.inVertical].RemoveAt(checkIndex);
+                                            isDelete = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -354,14 +359,17 @@ public class GridDrop : MonoBehaviour
 
                         //[4.2]检测该列上方是否有传送门出口，若有，则不从备用行补充元素
                         hasDoor = false;
-                        foreach (DoorBean doorBean in mDoorDataList)
+                        if(mDoorDataList != null)
                         {
-                            //[4.2.1]需补充元素上方有传送门
-                            if (doorBean.outVertical == i && doorBean.outHorizontal <= checkIndex)
+                            foreach (DoorBean doorBean in mDoorDataList)
                             {
-                                dropFromDoor(doorBean, addCounts);
-                                hasDoor = true;
-                                break;
+                                //[4.2.1]需补充元素上方有传送门
+                                if (doorBean.outVertical == i && doorBean.outHorizontal <= checkIndex)
+                                {
+                                    dropFromDoor(doorBean, addCounts);
+                                    hasDoor = true;
+                                    break;
+                                }
                             }
                         }
                         if (!hasDoor)
