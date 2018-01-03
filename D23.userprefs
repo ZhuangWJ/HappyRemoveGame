@@ -1,10 +1,9 @@
 ﻿<Properties StartupItem="D23.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Animator\GridDrop.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\7.json">
     <Files>
-      <File FileName="Assets\Scripts\UIManager\GridUI.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\SceneEditor\SceneEditor.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Animator\GridDrop.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\SceneEditor\SceneEditor.cs" Line="7" Column="2" />
+      <File FileName="Assets\7.json" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

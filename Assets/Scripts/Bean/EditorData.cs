@@ -67,4 +67,14 @@ public class EditorData
     /// 冰块数据
     /// </summary>
     public string iceData;
+
+    /// <summary>
+    /// 金豆荚数据
+    /// </summary>
+    public string beanData;
+
+    /// <summary>
+    /// 金豆荚篮子数据
+    /// </summary>
+    public string basketData;
 }

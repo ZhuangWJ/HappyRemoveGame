@@ -221,15 +221,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Animator\GridDrop.cs" />
+    <Compile Include="Assets\Scripts\Bean\BasketBean.cs" />
+    <Compile Include="Assets\Scripts\Bean\GridUIAttributeManager.cs" />
+    <Compile Include="Assets\Scripts\_UIActivity\GridUIActivity.cs" />
+    <Compile Include="Assets\Scripts\_UIAnimator\GridUIDrop.cs" />
+    <Compile Include="Assets\Scripts\Bean\BeanPod.cs" />
+    <Compile Include="Assets\Scripts\Bean\DoorBean.cs" />
     <Compile Include="Assets\Scripts\Bean\EditorData.cs" />
     <Compile Include="Assets\Scripts\Bean\GameData.cs" />
     <Compile Include="Assets\Scripts\Bean\GridBaseBean.cs" />
     <Compile Include="Assets\Scripts\Bean\GridBean.cs" />
-    <Compile Include="Assets\Scripts\Bean\DoorBean.cs" />
     <Compile Include="Assets\Scripts\Bean\IceBean.cs" />
     <Compile Include="Assets\Scripts\SceneEditor\SceneEditor.cs" />
-    <Compile Include="Assets\Scripts\UIManager\GridUI.cs" />
     <Compile Include="Assets\Scripts\Utils\JsonUtil.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
