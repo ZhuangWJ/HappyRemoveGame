@@ -47,21 +47,21 @@ public class SceneEditor : MonoBehaviour
     private bool isInit = true;
     private int lines;
 
-    private string gridDataToJson;
+    private string gridDataToJson = null;
     private List<List<GridBean>> gridListOfEditor; //编辑器格子管理者
     private List<GridBean> gridList;
 
     private Vector3 doorPoint;
-    private string doorDataToJson;
+    private string doorDataToJson = null;
     private bool isCreateOne;
     private List<DoorBean> doorListOfEditor;//编辑器传送门管理者
 
     private Vector3 icePoint;
-    private string iceDataToJson;
+    private string iceDataToJson = null;
     private List<IceBean> iceListOfEditor;//编辑器冰块管理者
 
     private Vector3 basketPoint;
-    private string basketDataToJson;
+    private string basketDataToJson = null;
     private List<BasketBean> basketListOfEditor;//编辑器金豆荚篮子管理者
 
     /// <summary>
@@ -127,15 +127,21 @@ public class SceneEditor : MonoBehaviour
                 }
                 grid.GetComponent<RectTransform>().position = new Vector3(x + gridSize * reSetX, y - whichLine * gridSize, 0);
 
-                //如果是传送门出入口，则需要进行翻转
-                if (i == 8 || i == 9)
-                    grid.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
-                //传送门入口
-                if (i == 8)
-                    grid.GetComponent<RectTransform>().position = new Vector3(x + gridSize * reSetX, y - whichLine * gridSize - gridSize / 3, 0);
-                //传送门出口
-                if (i == 9)
-                    grid.GetComponent<RectTransform>().position = new Vector3(x + gridSize * reSetX, y - whichLine * gridSize + gridSize / 3, 0);
+                //调整部分UI的属性
+                switch (i)
+                {
+                    case 8://传送门入口
+                        grid.GetComponent<RectTransform>().position = new Vector3(x + gridSize * reSetX, y - whichLine * gridSize - gridSize / 3, 0);
+                        grid.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
+                        break;
+                    case 9://传送门出口
+                        grid.GetComponent<RectTransform>().position = new Vector3(x + gridSize * reSetX, y - whichLine * gridSize + gridSize / 3, 0);
+                        grid.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
+                        break;
+                    case 14://金豆荚篮子
+                        grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize * 0.9f, gridSize*0.4f);
+                        break;
+                }
 
                 GridBean gridBean = new GridBean();
                 gridBean.gridObject = grid;
@@ -251,7 +257,7 @@ public class SceneEditor : MonoBehaviour
                 indoor.name = "indoor" + doorListOfEditor[i].inVertical.ToString() + doorListOfEditor[i].inHorizontal.ToString();
                 indoor.AddComponent<Image>();
                 indoor.GetComponent<Image>().sprite = mSprites[8];
-                doorPoint = gridListOfEditor[doorListOfEditor[i].inVertical][doorListOfEditor[i].inHorizontal].gridObject.GetComponent<RectTransform>().position;
+                doorPoint = mGridBaseListManager[doorListOfEditor[i].inVertical][doorListOfEditor[i].inHorizontal].gridBase.GetComponent<RectTransform>().position;
                 indoor.GetComponent<RectTransform>().position = doorPoint + new Vector3(0.0f, -gridSize * 2 / 3, 0.0f);
                 indoor.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                 indoor.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
@@ -263,7 +269,7 @@ public class SceneEditor : MonoBehaviour
                 outdoor.name = "outdoor" + doorListOfEditor[i].outVertical.ToString() + doorListOfEditor[i].outHorizontal.ToString();
                 outdoor.AddComponent<Image>();
                 outdoor.GetComponent<Image>().sprite = mSprites[9];
-                doorPoint = gridListOfEditor[doorListOfEditor[i].outVertical][doorListOfEditor[i].outHorizontal].gridObject.GetComponent<RectTransform>().position;
+                doorPoint = mGridBaseListManager[doorListOfEditor[i].outVertical][doorListOfEditor[i].outHorizontal].gridBase.GetComponent<RectTransform>().position;
                 outdoor.GetComponent<RectTransform>().position = doorPoint + new Vector3(0.0f, gridSize * 2 / 3, 0.0f);
                 outdoor.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                 outdoor.GetComponent<RectTransform>().Rotate(new Vector3(75, 0.0f, 0.0f));
@@ -379,17 +385,7 @@ public class SceneEditor : MonoBehaviour
         }
 
         //更新消除类型和数量
-        if (inputPlayLevel.GetComponent<InputField>().text != null)
-            mEditorData.playLevel = int.Parse(inputPlayLevel.GetComponent<InputField>().text);
-        if (inputTargetTypeCounts.GetComponent<InputField>().text != null)
-            mEditorData.targetCounts = int.Parse(inputTargetTypeCounts.GetComponent<InputField>().text);
-        if (inputStepCounts.GetComponent<InputField>().text != null)
-            mEditorData.stepCounts = int.Parse(inputStepCounts.GetComponent<InputField>().text);
-
-        mEditorData.targetTypeObj.GetComponent<Image>().sprite = mSprites[targetTypeIndex];
-        mEditorData.targetType = targetTypeIndex;
-        mEditorData.targetCountCountObj.GetComponent<Text>().text = "x" + mEditorData.targetCounts;
-        mEditorData.stepCountsObj.GetComponent<Text>().text = mEditorData.stepCounts.ToString();
+        updatePlayLevelMsg();
 
         //更新传送门位置
         if (doorListOfEditor != null)
@@ -450,7 +446,7 @@ public class SceneEditor : MonoBehaviour
         }
 
         //更新金豆荚篮子位置
-        if(basketListOfEditor != null)
+        if (basketListOfEditor != null)
         {
             mBasketDataList = basketListOfEditor;
             foreach (BasketBean basketBean in mBasketDataList)
@@ -469,6 +465,22 @@ public class SceneEditor : MonoBehaviour
                 basketBean.basket = basket;
             }
         }
+    }
+
+    //更新游戏目标消除类型，步数等信息
+    private void updatePlayLevelMsg()
+    {
+        if (inputPlayLevel.GetComponent<InputField>().text != null)
+            mEditorData.playLevel = int.Parse(inputPlayLevel.GetComponent<InputField>().text);
+        if (inputTargetTypeCounts.GetComponent<InputField>().text != null)
+            mEditorData.targetCounts = int.Parse(inputTargetTypeCounts.GetComponent<InputField>().text);
+        if (inputStepCounts.GetComponent<InputField>().text != null)
+            mEditorData.stepCounts = int.Parse(inputStepCounts.GetComponent<InputField>().text);
+
+        mEditorData.targetTypeObj.GetComponent<Image>().sprite = mSprites[targetTypeIndex];
+        mEditorData.targetType = targetTypeIndex;
+        mEditorData.targetCountCountObj.GetComponent<Text>().text = "x" + mEditorData.targetCounts;
+        mEditorData.stepCountsObj.GetComponent<Text>().text = mEditorData.stepCounts.ToString();
     }
 
     //类型选择元素点击事件
@@ -578,7 +590,7 @@ public class SceneEditor : MonoBehaviour
                 case 11:
                 case 12:
                     isCreateOne = true;
-                    if (iceListOfEditor.Count > 0)
+                    if (iceListOfEditor !=null &&iceListOfEditor.Count > 0)
                     {
                         for (int i = 0; i < iceListOfEditor.Count; i++)
                         {
@@ -678,11 +690,14 @@ public class SceneEditor : MonoBehaviour
         ice.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
         ice.AddComponent<Button>();
         ice.GetComponent<Button>().onClick.AddListener(onGridClick);
+        ice.transform.SetSiblingIndex(0);
         IceBean iceBean = new IceBean();
         iceBean.iceVertical = startVertical;
         iceBean.iceHorizontal = startHorizontal;
         iceBean.iceLevel = currentIndex - 9;
         iceBean.ice = ice;
+        if (iceListOfEditor == null)
+            iceListOfEditor = new List<IceBean>();
         iceListOfEditor.Add(iceBean);
     }
 
@@ -738,7 +753,7 @@ public class SceneEditor : MonoBehaviour
             }
         }
 
-        //将游戏场景的元素清楚、传送门、冰块等
+        //清除传送门
         if (doorListOfEditor != null)
         {
             for (int i = 0; i < doorListOfEditor.Count; i++)
@@ -749,6 +764,7 @@ public class SceneEditor : MonoBehaviour
             doorListOfEditor.RemoveRange(0, doorListOfEditor.Count);
         }
 
+        //清除冰块
         if (iceListOfEditor != null)
         {
             for (int i = 0; i < iceListOfEditor.Count; i++)
@@ -757,12 +773,25 @@ public class SceneEditor : MonoBehaviour
             }
             iceListOfEditor.RemoveRange(0, iceListOfEditor.Count);
         }
+
+        //清除金豆荚篮子
+        if (basketListOfEditor != null)
+        {
+            for(int i = 0; i < basketListOfEditor.Count; i++)
+            {
+                Destroy(basketListOfEditor[i].basket);
+            }
+            basketListOfEditor.RemoveRange(0, basketListOfEditor.Count);
+        }
     }
 
     //导出配置点击事件
     public void onOutputDataClick()
     {
-        //解析gridOfEditorManager数据
+        //更新关卡目标，步数等信息
+        updatePlayLevelMsg();
+
+        //封装格子内容数据
         for (int vertical = 0; vertical < 9; vertical++)
         {
             for (int horizontal = 0; horizontal < 9; horizontal++)
@@ -774,32 +803,35 @@ public class SceneEditor : MonoBehaviour
         }
         mEditorData.gridData = gridDataToJson;
 
-        if (mDoorDataList != null)
+        //封装传送门数据
+        if (doorListOfEditor != null)
         {
-            for (int i = 0; i < mDoorDataList.Count; i++)
+            for (int i = 0; i < doorListOfEditor.Count; i++)
             {
-                doorDataToJson = doorDataToJson + mDoorDataList[i].inVertical + "|" + mDoorDataList[i].inHorizontal + "|" + mDoorDataList[i].outVertical + "|" + mDoorDataList[i].outHorizontal + ",";
+                doorDataToJson = doorDataToJson + doorListOfEditor[i].inVertical + "|" + doorListOfEditor[i].inHorizontal + "|" + doorListOfEditor[i].outVertical + "|" + doorListOfEditor[i].outHorizontal + ",";
             }
-            mEditorData.doorData = doorDataToJson;
         }
+        mEditorData.doorData = doorDataToJson;
 
-        if (mIceDataList != null)
+        //封装冰块数据
+        if (iceListOfEditor != null)
         {
-            for (int i = 0; i < mIceDataList.Count; i++)
+            for (int i = 0; i < iceListOfEditor.Count; i++)
             {
-                iceDataToJson = iceDataToJson + mIceDataList[i].iceVertical + "|" + mIceDataList[i].iceHorizontal + "|" + mIceDataList[i].iceLevel + ",";
+                iceDataToJson = iceDataToJson + iceListOfEditor[i].iceVertical + "|" + iceListOfEditor[i].iceHorizontal + "|" + iceListOfEditor[i].iceLevel + ",";
             }
-            mEditorData.iceData = iceDataToJson;
         }
+        mEditorData.iceData = iceDataToJson;
 
-        if (mBasketDataList != null)
+        //封装金豆荚篮子数据
+        if (basketListOfEditor != null)
         {
-            for (int i = 0; i < mBasketDataList.Count; i++)
+            for (int i = 0; i < basketListOfEditor.Count; i++)
             {
-                basketDataToJson = basketDataToJson + mBasketDataList[i].basketVertical + "|" + mBasketDataList[i].basketHorizontal + ",";
+                basketDataToJson = basketDataToJson + basketListOfEditor[i].basketVertical + "|" + basketListOfEditor[i].basketHorizontal + ",";
             }
-            mEditorData.basketData = basketDataToJson;
         }
+        mEditorData.basketData = basketDataToJson;
 
         //判断同一关卡配置是否存在
 

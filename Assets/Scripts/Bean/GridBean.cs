@@ -89,6 +89,11 @@ public class GridBean
     public bool isDestroy;
 
     /// <summary>
+    /// 是否消除雪块，一次连线消除，只消除一次雪块
+    /// </summary>
+    public bool isFrostingRemove = false;
+
+    /// <summary>
     /// GridBean的复制方法
     /// </summary>
     /// <param name="copyGridBean"></param>

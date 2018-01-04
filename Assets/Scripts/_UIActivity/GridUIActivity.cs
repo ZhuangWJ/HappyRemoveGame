@@ -61,7 +61,8 @@ public class GridUIActivity : MonoBehaviour
     private static GameObject great;//完成目标后显示的对象
     private static GameObject targetGrid;//目标类型
     private List<BeanPod> beanPodList;
-    private static List<GridBean> gridOfBeanPodList;
+    private static List<GridBean> gridOfBeanPodList;//金豆荚List
+    private static List<GridBean> frostingList;//雪块List
 
     private List<GridBean> gridDataList;
     private int nextListIndex;
@@ -72,6 +73,7 @@ public class GridUIActivity : MonoBehaviour
     private int mIceLevel;
     private List<BasketBean> basketDataList;
     private static int createBeanPodStep;
+    private static int isCreateBeanPod;
     private static int beanPodIndexMax;
     private static int beanPodIndexMin;
     private static int beanPodIndex;
@@ -100,7 +102,7 @@ public class GridUIActivity : MonoBehaviour
     public void initData()
     {
         //[0]读取配置，获取对象
-        editorData = JsonUtil.getEditorData(7);
+        editorData = JsonUtil.getEditorData(6);
         GridUIAttributeManager.getInstance().editorData = editorData;
 
         //[1]获取格子内容信息
@@ -299,14 +301,6 @@ public class GridUIActivity : MonoBehaviour
         GridBg.GetComponent<RectTransform>().SetParent(mainCanvas.transform);
         Grid.GetComponent<RectTransform>().SetParent(mainCanvas.transform);
 
-        ////加载元素类型资源
-        //for (int i = 0; i < gridTpyeId.Length; i++)
-        //{
-        //    Sprite sprite = new Sprite();
-        //    sprite = Resources.Load<Sprite>(gridTpyeId[i]) as Sprite;
-        //    sprites.Add(sprite);
-        //}
-
         //加载元素背景类型资源
         for (int i = 0; i < gridBaseTpyeId.Length; i++)
         {
@@ -324,16 +318,7 @@ public class GridUIActivity : MonoBehaviour
         }
         GridUIAttributeManager.getInstance().allSprites = allSprites;
 
-        //[1]读取配置，设置关卡目标类型和数量
-        //jsonPath = Application.dataPath;
-        //myWindowData = JsonUtil.getMyWindowDataFromJson(jsonPath, "myWindowData.json");
-        //editorData = new EditorData();
-        //editorData.playLevel = 1;
-        //editorData.stepCounts = 20;
-        //editorData.targetType = UnityEngine.Random.Range(0, 6);
-        //editorData.targetCounts = UnityEngine.Random.Range(15, 30);
-
-        //[1.1]设置目标类型
+        //[1]设置目标类型
         targetGrid = Instantiate(Resources.Load("prefabs/grid"), targetBoard.transform) as GameObject;
         targetGrid.name = "targetGrid";
         Destroy(targetGrid.GetComponent<SpriteRenderer>());
@@ -344,17 +329,18 @@ public class GridUIActivity : MonoBehaviour
             targetGrid.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4, 0.0f);
         else
             targetGrid.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgWith * 0.1f * 2 / 4, 0.0f);
-        //[1.1.1]判断通过目标是否金豆荚
+        //[1.1]判断通过目标是否金豆荚
         if (editorData.targetType == 13)
         {
             beanPodList = new List<BeanPod>();
             BeanPod beanPod = new BeanPod();
             beanPod.beanPodVeritcal = UnityEngine.Random.Range(0, 9);
-            beanPod.beanPodHorizontal = 7;
+            beanPod.beanPodHorizontal = 0;
             beanPodList.Add(beanPod);
 
             //生成金豆荚的平均步数
-            createBeanPodStep = editorData.stepCounts / editorData.targetCounts - 1;
+            createBeanPodStep = editorData.stepCounts / editorData.targetCounts;
+            isCreateBeanPod = createBeanPodStep;
         }
 
         //[1.2]设置目标数量
@@ -424,6 +410,7 @@ public class GridUIActivity : MonoBehaviour
             x = Screen.width / 2 - gameBgWith / 2 + leaveSize / 2 + gridSize / 2;
 
         gridOfBeanPodList = new List<GridBean>();
+        frostingList = new List<GridBean>();
         for (int vertical = 0; vertical < gameData.vertical; vertical++, x = x + interval)
         {
             //[3.2]设置第一行元素的初始位置 y
@@ -496,6 +483,9 @@ public class GridUIActivity : MonoBehaviour
                 //遍历配置文件，若有对应固定的位置，则根据情况显示
                 if (horizontal != 0)
                 {
+                    //默认随机
+                    gridBean.spritesIndex = UnityEngine.Random.Range(2, 8);
+                    gridBaseList[horizontal - 1].isHasGrid = true;
                     //如果配置数据为空，则默认随机
                     if (gridDataList != null)
                     {
@@ -505,19 +495,22 @@ public class GridUIActivity : MonoBehaviour
                             {
                                 switch (gridData.spritesIndex)
                                 {
-                                    case 0://随机
-                                        gridBean.spritesIndex = UnityEngine.Random.Range(2, 8);
-                                        gridBaseList[horizontal - 1].isHasGrid = true;
-                                        break;
                                     case 1://不显示
                                         gridBaseList[horizontal - 1].gridBase.SetActive(false);
-                                        gridBaseList[horizontal - 1].isHasGrid = true;
                                         gridBaseList[horizontal - 1].spriteIndex = -1;
                                         grid.SetActive(false);
                                         break;
+                                    case 15://雪块
+                                    case 16:
+                                    case 17:
+                                    case 18:
+                                    case 19:
+                                        gridBean.spritesIndex = gridData.spritesIndex;
+                                        gridBaseList[horizontal - 1].spriteIndex = gridData.spritesIndex;
+                                        frostingList.Add(gridBean);
+                                        break;
                                     default://默认根据ID显示对应资源
                                         gridBean.spritesIndex = gridData.spritesIndex;
-                                        gridBaseList[horizontal - 1].isHasGrid = true;
                                         break;
                                 }
                                 break;
@@ -640,8 +633,8 @@ public class GridUIActivity : MonoBehaviour
             {
                 startVertical = (int)((Input.mousePosition.x - x) / (gridSize + intervalPx));
                 startHorizontal = startListIndex = (int)((y - Input.mousePosition.y) / (gridSize + intervalPx));
-
-                if (gridBaseListManager[startVertical][startHorizontal].isHasGrid && gridBaseListManager[startVertical][startHorizontal].spriteIndex != -1)
+                int startSpriteIndex = gridBaseListManager[startVertical][startHorizontal].spriteIndex;
+                if (gridBaseListManager[startVertical][startHorizontal].isHasGrid && startSpriteIndex != -1 && startSpriteIndex != 15 && startSpriteIndex != 16 && startSpriteIndex != 17 && startSpriteIndex != 18 && startSpriteIndex != 19)
                 {
                     //判断startVertical该列上没有元素
                     for (int h = startHorizontal - 1; h >= 0; h--)
@@ -669,8 +662,8 @@ public class GridUIActivity : MonoBehaviour
             {
                 nextVertical = (int)((Input.mousePosition.x - x) / (gridSize + intervalPx));
                 nextHorizontal = nextListIndex = (int)((y - Input.mousePosition.y) / (gridSize + intervalPx));
-
-                if (gridBaseListManager[nextVertical][nextHorizontal].isHasGrid && gridBaseListManager[nextVertical][nextHorizontal].spriteIndex != -1)
+                int nextSpriteIndex = gridBaseListManager[nextVertical][nextHorizontal].spriteIndex;
+                if (gridBaseListManager[nextVertical][nextHorizontal].isHasGrid && nextSpriteIndex != -1 && nextSpriteIndex != 15 && nextSpriteIndex != 16 && nextSpriteIndex != 17 && nextSpriteIndex != 18 && nextSpriteIndex != 19)
                 {
 
                     //判断nextVertical该列上没有元素
@@ -828,8 +821,21 @@ public class GridUIActivity : MonoBehaviour
                             }
                         }
 
+                        //判断消除附近是否有雪块
+                        if (frostingList != null)
+                            checkFrosting(gridBean);
+
                         //[3]消除元素
                         Destroy(gridBean.gridObject);
+                    }
+
+                    //还原雪块消除信息
+                    if (frostingList != null)
+                    {
+                        for (int i = 0; i < frostingList.Count; i++)
+                        {
+                            frostingList[i].isFrostingRemove = false;
+                        }
                     }
 
                     //[4]记录元素掉落信息
@@ -837,11 +843,12 @@ public class GridUIActivity : MonoBehaviour
 
                     //[5]刷新步数信息
                     editorData.stepCounts--;
-                    createBeanPodStep--;
+                    if (editorData.targetType == 13)
+                        isCreateBeanPod--;
                     if (editorData.stepCounts > 0)
                     {
                         stepCounts.GetComponent<Text>().text = editorData.stepCounts.ToString();
-                        if (createBeanPodStep == 0)
+                        if (editorData.targetType == 13 && isCreateBeanPod == 0)
                             createBeanPod();
                     }
                     else
@@ -895,9 +902,10 @@ public class GridUIActivity : MonoBehaviour
         gridListManager[beanPodIndex][0].spritesIndex = 13;
         gridListManager[beanPodIndex][0].gridObject.GetComponent<Image>().sprite = allSprites[13];
         gridOfBeanPodList.Add(gridListManager[beanPodIndex][0]);
-        createBeanPodStep = editorData.stepCounts / editorData.targetCounts - 1;
+        isCreateBeanPod = createBeanPodStep;
     }
 
+    //更新通过目标剩余数量
     public static void updateTargetCounts(int deleteCounts)
     {
         if (deleteCounts >= editorData.targetCounts)
@@ -916,6 +924,67 @@ public class GridUIActivity : MonoBehaviour
         {
             //[6.2]仍未完成目标
             targetCount.GetComponent<Text>().text = "x" + (editorData.targetCounts - deleteCounts);
+        }
+    }
+
+    //检查消除元素的上下左右是否有雪块
+    private void checkFrosting(GridBean gridBean)
+    {
+        for (int i = 0; i < frostingList.Count; i++)
+        {
+            if ((System.Math.Abs(frostingList[i].listVertical - gridBean.listVertical) <= 1 && frostingList[i].listHorizontal - gridBean.listHorizontal == 0) || (frostingList[i].listVertical - gridBean.listVertical == 0 && System.Math.Abs(frostingList[i].listHorizontal - gridBean.listHorizontal) <= 1))
+            {
+                if (!frostingList[i].isFrostingRemove)
+                {
+                    frostingList[i].spritesIndex--;
+                    if (frostingList[i].spritesIndex >= 15)
+                    {
+                        frostingList[i].gridObject.GetComponent<Image>().sprite = allSprites[frostingList[i].spritesIndex];
+                    }
+                    else
+                    {
+                        Destroy(frostingList[i].gridObject);
+                        gridBaseListManager[frostingList[i].listVertical][frostingList[i].listHorizontal].isHasGrid = false;
+                    }
+                    gridBaseListManager[frostingList[i].listVertical][frostingList[i].listHorizontal].spriteIndex = frostingList[i].spritesIndex;
+                    frostingList[i].isFrostingRemove = true;
+                }
+            }
+        }
+
+        //更新雪块List
+        for (int v = 0; v < 9; v++)
+        {
+            for (int h = 0; h < 9; h++)
+            {
+                if (gridBaseListManager[v][h].spriteIndex == 14)
+                {
+                    foreach (GridBean grid in frostingList)
+                    {
+                        if (grid.listVertical == v && grid.listHorizontal == h)
+                        {
+                            frostingList.Remove(grid);
+
+                            if (h != 0)
+                            {
+                                int removeIndex = h;
+                                for (int x = h - 1; x >= 0; x--)
+                                {
+                                    if (!gridBaseListManager[v][x].isHasGrid)
+                                        removeIndex--;
+                                    if (x == 0)
+                                        gridListManager[v].RemoveAt(removeIndex);
+                                }
+                            }
+                            else
+                            {
+                                gridListManager[v].RemoveAt(0);
+                            }
+                            break;
+                        }
+                    }
+                    }
+            }
         }
     }
 }
