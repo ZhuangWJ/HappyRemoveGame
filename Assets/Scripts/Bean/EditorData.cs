@@ -41,7 +41,7 @@ public class EditorData
     /// <summary>
     /// 目标消除数量的对象
     /// </summary>
-    public GameObject targetCountCountObj;
+    public GameObject targetCountObj;
 
     /// <summary>
     /// 可用步数对象
@@ -54,7 +54,7 @@ public class EditorData
     public bool isUpdataTarget;
 
     /// <summary>
-    /// 元素格子数据
+    /// 方块格子数据
     /// </summary>
     public string gridData;
 

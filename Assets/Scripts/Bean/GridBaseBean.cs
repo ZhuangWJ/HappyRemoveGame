@@ -9,12 +9,12 @@ public class GridBaseBean
     public GameObject gridBase;
 
     /// <summary>
-    /// 背景上方是否有元素
+    /// 背景上方是否有方块
     /// </summary>
     public bool isHasGrid;
 
     /// <summary>
-    /// 元素的资源索引，-1即为空
+    /// 方块的资源索引，-1即为空
     /// </summary>
     public int spriteIndex;
 }

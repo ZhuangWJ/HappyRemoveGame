@@ -8,7 +8,7 @@ public class SceneEditor : MonoBehaviour
     //游戏场景中的UI
     public GameObject sceneEditor; //编辑器父对象
     public GameObject openEditorButton;//打开编辑器的按钮
-    public GameObject gridTypeBackground;//格子元素选择列表父对象
+    public GameObject gridTypeBackground;//格子方块选择列表父对象
     public GameObject GridContentSet;//格子内容父对象
     public GameObject Arrows;//箭头对象
     public GameObject inputPlayLevel;//关卡输入框
@@ -18,7 +18,7 @@ public class SceneEditor : MonoBehaviour
 
     //所需接收GridUI数据的变量
     private EditorData mEditorData;
-    private List<Sprite> mSprites;//元素资源列表数组
+    private List<Sprite> mSprites;//方块资源列表数组
     private GameObject mGameBackground;
     private GameObject mGridBg;
     private GameObject mGrid;
@@ -29,8 +29,8 @@ public class SceneEditor : MonoBehaviour
     private List<GridBean> mGridDataList;
     private List<BasketBean> mBasketDataList;
 
-    private float gridTypeBackgroundHeight;//元素背景的中心店高度
-    private float gridTypeChoosePositionY;//元素选择列表各类型的positionY值
+    private float gridTypeBackgroundHeight;//方块背景的中心店高度
+    private float gridTypeChoosePositionY;//方块选择列表各类型的positionY值
 
     private float leaveSize = 0.0f;//屏幕宽度留白空间
     private float intervalPx = 1.0f;//相邻格子间隙
@@ -38,9 +38,9 @@ public class SceneEditor : MonoBehaviour
     private float originOfgridTypeBg;
     private float gridTpyeBgHeight;
     private float interval;//相邻格子中点坐标的间隔
-    private float x; //作为边界或者元素坐标的x坐标变量
-    private float y;//作为边界或者元素坐标的y坐标变量
-    private int currentIndex;//当前元素列表的索引
+    private float x; //作为边界或者方块坐标的x坐标变量
+    private float y;//作为边界或者方块坐标的y坐标变量
+    private int currentIndex;//当前方块列表的索引
     private int startHorizontal; //当前鼠标点击格子的行数
     private int startVertical;//当前鼠标点击格子的列数
     private int targetTypeIndex;
@@ -206,7 +206,7 @@ public class SceneEditor : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //点击元素选择类型其他区域，则隐藏选择
+        //点击方块选择类型其他区域，则隐藏选择
         if (gridTypeBackground != null)
         {
             if (Input.GetMouseButtonDown(0) && (Input.mousePosition.y > gridTypeChoosePositionY + gridTypeBackgroundHeight / 2 || Input.mousePosition.y < gridTypeChoosePositionY - gridTypeBackgroundHeight / 2))
@@ -223,7 +223,7 @@ public class SceneEditor : MonoBehaviour
         sceneEditor.SetActive(true);
         gridTypeBackground.SetActive(false);
 
-        //初始化游戏场景元素
+        //初始化游戏场景方块
         initGameBg();
 
         if (isInit)
@@ -346,12 +346,12 @@ public class SceneEditor : MonoBehaviour
         sceneEditor.SetActive(false);
 
         //将编辑器数据传递给游戏场景显示
-        //获取管理游戏元素的GridListManager
+        //获取管理游戏方块的GridListManager
         for (int vertical = 0; vertical < 9; vertical++)
         {
             for (int horizontal = 0; horizontal < 9; horizontal++)
             {
-                //产生随机元素
+                //产生随机方块
                 if (gridListOfEditor[vertical][horizontal].spritesIndex == 0)
                 {
                     mGridListManager[vertical][horizontal].gridObject.SetActive(true);
@@ -362,7 +362,7 @@ public class SceneEditor : MonoBehaviour
                     mGridBaseListManager[vertical][horizontal].spriteIndex = mGridListManager[vertical][horizontal].spritesIndex;
                 }
 
-                //不显示元素，挖空格子
+                //不显示方块，挖空格子
                 if (gridListOfEditor[vertical][horizontal].spritesIndex == 1)
                 {
                     mGridListManager[vertical][horizontal].gridObject.SetActive(false);
@@ -371,7 +371,7 @@ public class SceneEditor : MonoBehaviour
                     mGridBaseListManager[vertical][horizontal].spriteIndex = -1;
                 }
 
-                //固定元素
+                //固定方块
                 if (gridListOfEditor[vertical][horizontal].spritesIndex > 1)
                 {
                     mGridListManager[vertical][horizontal].gridObject.SetActive(true);
@@ -479,11 +479,11 @@ public class SceneEditor : MonoBehaviour
 
         mEditorData.targetTypeObj.GetComponent<Image>().sprite = mSprites[targetTypeIndex];
         mEditorData.targetType = targetTypeIndex;
-        mEditorData.targetCountCountObj.GetComponent<Text>().text = "x" + mEditorData.targetCounts;
+        mEditorData.targetCountObj.GetComponent<Text>().text = "x" + mEditorData.targetCounts;
         mEditorData.stepCountsObj.GetComponent<Text>().text = mEditorData.stepCounts.ToString();
     }
 
-    //类型选择元素点击事件
+    //类型选择方块点击事件
     public void onGridTypeClick()
     {
         //用于计算选择了哪个类型
@@ -648,7 +648,7 @@ public class SceneEditor : MonoBehaviour
             targetTypeIndex = currentIndex;
         }
 
-        //隐藏元素类型选择列表
+        //隐藏方块类型选择列表
         gridTypeBackground.SetActive(false);
     }
 
@@ -704,10 +704,10 @@ public class SceneEditor : MonoBehaviour
     //格子点击事件
     public void onGridClick()
     {
-        //显示元素选择内容列表
+        //显示方块选择内容列表
         gridTypeBackground.SetActive(true);
 
-        //设置元素选择列表位置
+        //设置方块选择列表位置
         gridTypeBackgroundHeight = gridTypeBackground.GetComponent<RectTransform>().rect.height;
         gridTypeChoosePositionY = Input.mousePosition.y + (gridTypeBackgroundHeight + 50) / 2;
         gridTypeBackground.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2, gridTypeChoosePositionY, 0.0f);
@@ -720,7 +720,7 @@ public class SceneEditor : MonoBehaviour
         x = leaveSize / 2;
         gridSize = (Screen.width - leaveSize - (9 - 1) * intervalPx) / 9;
 
-        //[3]鼠标点中格子区域才会响应，记录初次点中的元素信息
+        //[3]鼠标点中格子区域才会响应，记录初次点中的方块信息
         if (Input.mousePosition.x > x && Input.mousePosition.x < (Screen.width - x) && Input.mousePosition.y < y && Input.mousePosition.y > (y - Screen.width + x))
         {
             startHorizontal = (int)((y - Input.mousePosition.y) / (gridSize + intervalPx));
@@ -747,7 +747,7 @@ public class SceneEditor : MonoBehaviour
         {
             for (int horizontal = 0; horizontal < 9; horizontal++)
             {
-                //产生随机元素
+                //产生随机方块
                 gridListOfEditor[vertical][horizontal].spritesIndex = 0;
                 gridListOfEditor[vertical][horizontal].gridObject.GetComponent<Image>().sprite = mSprites[0];
             }
@@ -796,7 +796,7 @@ public class SceneEditor : MonoBehaviour
         {
             for (int horizontal = 0; horizontal < 9; horizontal++)
             {
-                //产生随机元素
+                //产生随机方块
                 if (gridListOfEditor[vertical][horizontal].spritesIndex != 0)
                     gridDataToJson = gridDataToJson + vertical + "|" + horizontal + "|" + (gridListOfEditor[vertical][horizontal].spritesIndex) + ",";
             }

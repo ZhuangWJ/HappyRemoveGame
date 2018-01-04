@@ -65,7 +65,7 @@ public class GridUIAttributeManager
     public List<List<GridBaseBean>> gridBaseListManager;
 
     /// <summary>
-    /// 备用元素的集合管理
+    /// 备用方块的集合管理
     /// </summary>
     public List<GridBean> gridDropList;
 

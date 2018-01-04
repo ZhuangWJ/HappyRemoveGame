@@ -24,18 +24,18 @@ public class GridUIDrop : MonoBehaviour
     private static float dropHeight;//所需下落的总高度
     private static int outIndex;
     private static int minEmptyIndex;//当列中挖空格子的最低格子位置
-    private static int addCounts;//所需从掉落备用行补充的元素个数
-    private static bool leftHasGrid;//从左边一列上一个格子是否有元素
-    private static bool rightHasGrid;//从右边一列上一个格子是否有元素
-    private static int randomSide;//若左右两边上一个格子均有元素，则随机产生0，1作为50%选择的依据
+    private static int addCounts;//所需从掉落备用行补充的方块个数
+    private static bool leftHasGrid;//从左边一列上一个格子是否有方块
+    private static bool rightHasGrid;//从右边一列上一个格子是否有方块
+    private static int randomSide;//若左右两边上一个格子均有方块，则随机产生0，1作为50%选择的依据
     private static float moveX;//每帧横移的距离
     private static int minHorizontal;//统一掉落的最小索引
     private static int checkIndex;//执行掉落遍历的索引变量
     private static int checkCounts;//检测isHasGrid为空的次数，取决于格子数
-    private static bool hasDoor;//检测元素上方是否有传送门出口
+    private static bool hasDoor;//检测方块上方是否有传送门出口
     private static bool isDelete;//检测金豆荚是否掉落至篮子并将金豆荚对象删除
-    private static float gridHideInDoor;//进入传送门，元素隐藏的边界
-    private static float gridShowOutDoor;//从传送门出来，元素显示的边界
+    private static float gridHideInDoor;//进入传送门，方块隐藏的边界
+    private static float gridShowOutDoor;//从传送门出来，方块显示的边界
     private static bool endRecord;//是否结束掉落信息记录
     private static bool endCheckBeanPod;//是否停止检测金豆荚位置
     private static bool isCreateOneBeanPod;//是否创建一个金豆荚
@@ -60,14 +60,14 @@ public class GridUIDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// 执行元素掉落动画
+    /// 执行方块掉落动画
     /// </summary>
     public static void gridDrop()
     {
         //[0]定义每帧掉落距离和横移距离
         dropY = moveX = mInterval * 0.1f;
 
-        //[1]遍历所有列，完成元素掉落
+        //[1]遍历所有列，完成方块掉落
         for (int h = 18; h > 0; h--)
         {
             for (int i = 0; i < mGameData.vertical; i++)
@@ -86,14 +86,14 @@ public class GridUIDrop : MonoBehaviour
                             mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position += new Vector3(0.0f, -dropY, 0.0f);
                             mGridListManager[i][checkIndex].dropHeight -= dropY;
 
-                            //若为补充元素掉落，则掉落距离超过第一个格子一半，则开始显示
+                            //若为补充方块掉落，则掉落距离超过第一个格子一半，则开始显示
                             if (mGridListManager[i][checkIndex].isTop && mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position.y <= gridBorderY)
                             {
                                 mGridListManager[i][checkIndex].gridObject.SetActive(true);
                                 mGridListManager[i][checkIndex].isTop = false;
                             }
 
-                            //若为传送门入口元素掉落，则掉落距离超过传送门下方格子，则开始隐藏
+                            //若为传送门入口方块掉落，则掉落距离超过传送门下方格子，则开始隐藏
                             if (mDoorDataList != null)
                             {
                                 foreach (DoorBean doorBean in mDoorDataList)
@@ -110,7 +110,7 @@ public class GridUIDrop : MonoBehaviour
                                     }
                                 }
 
-                                //若为传送门出口元素掉落，则掉落距离超过传送门上方格子，则开始显示
+                                //若为传送门出口方块掉落，则掉落距离超过传送门上方格子，则开始显示
                                 foreach (DoorBean doorBean in mDoorDataList)
                                 {
                                     if (doorBean.outVertical == i)
@@ -126,7 +126,7 @@ public class GridUIDrop : MonoBehaviour
                                 }
                             }
 
-                            //若为金豆荚篮子位置，则金豆荚元素中心掉落穿过篮子，则开始隐藏，并删除对象
+                            //若为金豆荚篮子位置，则金豆荚方块中心掉落穿过篮子，则开始隐藏，并删除对象
                             if (mGridOfBeanPodList != null && mBasketDataList != null)
                             {
                                 endCheckBeanPod = false;
@@ -162,7 +162,7 @@ public class GridUIDrop : MonoBehaviour
                             mGridListManager[i][checkIndex].dropHeight = 0;
                             mGridListManager[i][checkIndex].dropCounts = 0;
 
-                            //若为传送门入口列下移到最底部，则移除元素
+                            //若为传送门入口列下移到最底部，则移除方块
                             isDelete = false;
                             if (mDoorDataList != null)
                             {
@@ -257,7 +257,7 @@ public class GridUIDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// 记录元素掉落的信息
+    /// 记录方块掉落的信息
     /// </summary>
     public static void recordGridDropMsg()
     {
@@ -272,7 +272,7 @@ public class GridUIDrop : MonoBehaviour
                 {
                     //若List的x处是否为挖空or雪块，则也不需掉落
                     mGridBaseSpriteIndex = mGridBaseListManager[i][mGridListManager[i][x].listHorizontal].spriteIndex;
-                    if (mGridBaseSpriteIndex == -1 || (mGridBaseSpriteIndex >= 15 && mGridBaseSpriteIndex <= 19))
+                    if (mGridBaseSpriteIndex == -1 || (mGridBaseSpriteIndex >= 15 && mGridBaseSpriteIndex <= 20))
                     {
                         if (minEmptyIndex < mGridListManager[i][x].listHorizontal)
                             minEmptyIndex = mGridListManager[i][x].listHorizontal;
@@ -312,13 +312,13 @@ public class GridUIDrop : MonoBehaviour
                                 addCounts = checkIndex;
                             }
 
-                            //检测该列上方是否有传送门出口，若有，则不从备用行补充元素
+                            //检测该列上方是否有传送门出口，若有，则不从备用行补充方块
                             hasDoor = false;
                             if (mDoorDataList != null)
                             {
                                 foreach (DoorBean doorBean in mDoorDataList)
                                 {
-                                    //需补充元素上方有传送门
+                                    //需补充方块上方有传送门
                                     if (doorBean.outVertical == i)
                                     {
                                         dropFromDoor(doorBean, addCounts);
@@ -352,15 +352,15 @@ public class GridUIDrop : MonoBehaviour
                         {
                             //若下方为挖空格子，则直接不需掉落
                             lowerGridSpriteIndex = mGridBaseListManager[i][mGridListManager[i][x].listHorizontal + 1].spriteIndex;
-                            if (lowerGridSpriteIndex == -1 || (lowerGridSpriteIndex >= 15 && lowerGridSpriteIndex <= 19))
+                            if (lowerGridSpriteIndex == -1 || (lowerGridSpriteIndex >= 15 && lowerGridSpriteIndex <= 20))
                                 break;
 
-                            //若下方没有元素，则掉落距离+1
+                            //若下方没有方块，则掉落距离+1
                             if (!mGridBaseListManager[i][y].isHasGrid)
                                 dropGridCounts++;
 
-                            //若跨了一个元素以上才碰到挖空，则直接跳出，返回dropGridCounts
-                            if (y > mGridListManager[i][x].listHorizontal + 1 && mGridBaseListManager[i][y].spriteIndex == -1)
+                            //若跨了一个方块以上才碰到挖空，则直接跳出，返回dropGridCounts
+                            if (y > mGridListManager[i][x].listHorizontal + 1 && (mGridBaseListManager[i][y].spriteIndex == -1 || (mGridBaseListManager[i][y].spriteIndex >= 15 && mGridBaseListManager[i][y].spriteIndex <= 20)))
                                 break;
                         }
 
@@ -369,7 +369,7 @@ public class GridUIDrop : MonoBehaviour
                             //下移的距离
                             dropHeight = dropGridCounts * mInterval;
 
-                            //记录元素需要掉落的高度
+                            //记录方块需要掉落的高度
                             mGridListManager[i][x].dropHeight = dropHeight;
                             mGridListManager[i][x].dropCounts = dropGridCounts;
 
@@ -381,7 +381,7 @@ public class GridUIDrop : MonoBehaviour
                         }
                     }
 
-                    //[4]记录所需补充元素掉落的相关信息，和生成补充元素
+                    //[4]记录所需补充方块掉落的相关信息，和生成补充方块
                     if (x == 0)
                     {
                         //[4.1]获取空格子上方所需补充的个数
@@ -399,13 +399,13 @@ public class GridUIDrop : MonoBehaviour
                             addCounts = checkIndex;
                         }
 
-                        //[4.2]检测该列上方是否有传送门出口，若有，则不从备用行补充元素
+                        //[4.2]检测该列上方是否有传送门出口，若有，则不从备用行补充方块
                         hasDoor = false;
                         if (mDoorDataList != null)
                         {
                             foreach (DoorBean doorBean in mDoorDataList)
                             {
-                                //[4.2.1]需补充元素上方有传送门
+                                //[4.2.1]需补充方块上方有传送门
                                 if (doorBean.outVertical == i && doorBean.outHorizontal <= checkIndex)
                                 {
                                     dropFromDoor(doorBean, addCounts);
@@ -425,7 +425,7 @@ public class GridUIDrop : MonoBehaviour
             }
         }
 
-        //[5]若当列有挖空阻挡掉落，则从两方进行掉落补充，若隔壁两列上方没有元素，则继续查找再左两列or右两列的元素
+        //[5]若当列有挖空阻挡掉落，则从两方进行掉落补充，若隔壁两列上方没有方块，则继续查找再左两列or右两列的方块
         checkCounts = 0;
         while (checkCounts < 8)
         {
@@ -433,14 +433,14 @@ public class GridUIDrop : MonoBehaviour
             {
                 for (int v = 0; v < 9; v++)
                 {
-                    if (mGridBaseListManager[v][h].spriteIndex != -1 && !mGridBaseListManager[v][h].isHasGrid && mGridBaseListManager[v][h - 1].spriteIndex != -1 && mGridBaseListManager[v][h - 1].spriteIndex != 15 && mGridBaseListManager[v][h - 1].spriteIndex != 16 && mGridBaseListManager[v][h - 1].spriteIndex != 17 && mGridBaseListManager[v][h - 1].spriteIndex != 18 && mGridBaseListManager[v][h - 1].spriteIndex != 19)
+                    if (!mGridBaseListManager[v][h].isHasGrid && mGridBaseListManager[v][h - 1].spriteIndex != -1 && !(mGridBaseListManager[v][h - 1].spriteIndex >= 15 && mGridBaseListManager[v][h - 1].spriteIndex <= 20))
                         dropFromOtherVertical(v, h);
                 }
             }
             checkCounts++;
         }
 
-        //[6]检测金豆荚位置，如果金豆荚位置处于篮子上方，则金豆荚位置上方所有元素均需要掉落一行
+        //[6]检测金豆荚位置，如果金豆荚位置处于篮子上方，则金豆荚位置上方所有方块均需要掉落一行
         if (mGridOfBeanPodList != null && mBasketDataList != null)
         {
             foreach (GridBean gridBean in mGridOfBeanPodList)
@@ -473,23 +473,23 @@ public class GridUIDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// 从其他列补充挖空下方的元素，记录掉落的相关信息
+    /// 从其他列补充挖空下方的方块，记录掉落的相关信息
     /// </summary>
     private static void dropFromOtherVertical(int v, int h)
     {
-        //判断空格子左右上方是否均有元素，记录元素所需横移和掉落的信息
+        //判断空格子左右上方是否均有方块，记录方块所需横移和掉落的信息
         rightHasGrid = false;
         leftHasGrid = false;
         switch (v)
         {
             case 0:
-                if (mGridBaseListManager[v + 1][h - 1].isHasGrid)
+                if (mGridBaseListManager[v + 1][h - 1].isHasGrid && !(mGridBaseListManager[v + 1][h - 1].spriteIndex == -1 || (mGridBaseListManager[v + 1][h - 1].spriteIndex >= 15 && mGridBaseListManager[v + 1][h - 1].spriteIndex <= 20)))
                 {
                     for (int x = v + 1; x <= 8; x++)
                     {
                         for (int i = h - 1; i >= 0; i--)
                         {
-                            if (mGridBaseListManager[x][i].spriteIndex == -1 || mGridBaseListManager[x][i].spriteIndex == 15 || mGridBaseListManager[x][i].spriteIndex == 16 || mGridBaseListManager[x][i].spriteIndex == 17 || mGridBaseListManager[x][i].spriteIndex == 18 || mGridBaseListManager[x][i].spriteIndex == 19)
+                            if (mGridBaseListManager[x][i].spriteIndex == -1 || (mGridBaseListManager[x][i].spriteIndex >= 15 && mGridBaseListManager[x][i].spriteIndex <= 20))
                                 break;
 
                             if (i == 0)
@@ -504,16 +504,16 @@ public class GridUIDrop : MonoBehaviour
                 }
                 break;
             case 8:
-                if (mGridBaseListManager[v - 1][h - 1].isHasGrid)
+                if (mGridBaseListManager[v - 1][h - 1].isHasGrid && !(mGridBaseListManager[v - 1][h - 1].spriteIndex == -1 || (mGridBaseListManager[v - 1][h - 1].spriteIndex >= 15 && mGridBaseListManager[v - 1][h - 1].spriteIndex <= 20)))
                 {
                     for (int x = v - 1; x >= 0; x--)
                     {
                         for (int i = h - 1; i >= 0; i--)
                         {
-                            if (mGridBaseListManager[x][i].spriteIndex == -1 || mGridBaseListManager[x][i].spriteIndex == 15 || mGridBaseListManager[x][i].spriteIndex == 16 || mGridBaseListManager[x][i].spriteIndex == 17 || mGridBaseListManager[x][i].spriteIndex == 18 || mGridBaseListManager[x][i].spriteIndex == 19)
+                            if (mGridBaseListManager[x][i].spriteIndex == -1 || (mGridBaseListManager[x][i].spriteIndex >= 15 && mGridBaseListManager[x][i].spriteIndex <= 20))
                                 break;
 
-                            if (x == 0 && i == 0)
+                            if (i == 0)
                                 leftHasGrid = true;
                         }
                         if (leftHasGrid)
@@ -525,41 +525,39 @@ public class GridUIDrop : MonoBehaviour
                 }
                 break;
             default:
-                if (mGridBaseListManager[v + 1][h - 1].isHasGrid)
+                if (mGridBaseListManager[v + 1][h - 1].isHasGrid && !(mGridBaseListManager[v + 1][h - 1].spriteIndex == -1 || (mGridBaseListManager[v + 1][h - 1].spriteIndex >= 15 && mGridBaseListManager[v + 1][h - 1].spriteIndex <= 20)))
                 {
                     for (int x = v + 1; x <= 8; x++)
                     {
                         for (int i = h - 1; i >= 0; i--)
                         {
-                            if (mGridBaseListManager[x][i].spriteIndex == -1 || mGridBaseListManager[x][i].spriteIndex == 15 || mGridBaseListManager[x][i].spriteIndex == 16 || mGridBaseListManager[x][i].spriteIndex == 17 || mGridBaseListManager[x][i].spriteIndex == 18 || mGridBaseListManager[x][i].spriteIndex == 19)
+                            if (mGridBaseListManager[x][i].spriteIndex == -1 || (mGridBaseListManager[x][i].spriteIndex >= 15 && mGridBaseListManager[x][i].spriteIndex <= 20))
                                 break;
 
                             if (i == 0)
                                 rightHasGrid = true;
                         }
-
                         if (rightHasGrid)
                             break;
                     }
                 }
-                if (mGridBaseListManager[v - 1][h - 1].isHasGrid)
+                if (mGridBaseListManager[v - 1][h - 1].isHasGrid && !(mGridBaseListManager[v - 1][h - 1].spriteIndex == -1 || (mGridBaseListManager[v - 1][h - 1].spriteIndex >= 15 && mGridBaseListManager[v - 1][h - 1].spriteIndex <= 20)))
                 {
                     for (int x = v - 1; x >= 0; x--)
                     {
                         for (int i = h - 1; i >= 0; i--)
                         {
-                            if (mGridBaseListManager[x][i].spriteIndex == -1 || mGridBaseListManager[x][i].spriteIndex == 15 || mGridBaseListManager[x][i].spriteIndex == 16 || mGridBaseListManager[x][i].spriteIndex == 17 || mGridBaseListManager[x][i].spriteIndex == 18 || mGridBaseListManager[x][i].spriteIndex == 19)
+                            if (mGridBaseListManager[x][i].spriteIndex == -1 || (mGridBaseListManager[x][i].spriteIndex >= 15 && mGridBaseListManager[x][i].spriteIndex <= 20))
                                 break;
 
                             if (i == 0)
                                 leftHasGrid = true;
                         }
-
                         if (leftHasGrid)
                             break;
                     }
                 }
-                //左右两边均有元素，则从左右两列随机一列掉落
+                //左右两边均有方块，则从左右两列随机一列掉落
                 if (rightHasGrid && leftHasGrid)
                 {
                     randomSide = UnityEngine.Random.Range(0, 2);
@@ -585,11 +583,11 @@ public class GridUIDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// 从左边列补充元素
+    /// 从左边列补充方块
     /// </summary>
     private static void dropFromLeftVertical(int v, int h)
     {
-        //修改从隔壁列补充元素的掉落信息
+        //修改从隔壁列补充方块的掉落信息
         for (int moveIndex = mGridListManager[v - 1].Count - 1; moveIndex >= 0; moveIndex--)
         {
             if (mGridListManager[v - 1][moveIndex].listHorizontal == h - 1)
@@ -604,7 +602,7 @@ public class GridUIDrop : MonoBehaviour
                 mGridListManager[v - 1][moveIndex].listVertical = v;
                 mGridListManager[v - 1][moveIndex].gridObject.name = "grid" + v.ToString() + h.ToString();
 
-                //将补充元素添加进v列
+                //将补充方块添加进v列
                 for (int i = mGridListManager[v].Count - 1; i >= 0; i--)
                 {
                     if (h < mGridListManager[v][i].listHorizontal)
@@ -618,7 +616,7 @@ public class GridUIDrop : MonoBehaviour
                     }
                 }
 
-                //移除v-1的元素
+                //移除v-1的方块
                 mGridListManager[v - 1].RemoveAt(moveIndex);
                 break;
             }
@@ -626,16 +624,16 @@ public class GridUIDrop : MonoBehaviour
         mGridBaseListManager[v][h].isHasGrid = true;
         mGridBaseListManager[v - 1][h - 1].isHasGrid = false;
 
-        //上方元素统一往下掉落一格
+        //上方方块统一往下掉落一格
         dropOneHeight(v - 1, h - 1);
     }
 
     /// <summary>
-    /// 从右边列补充元素
+    /// 从右边列补充方块
     /// </summary>
     private static void dropFromRightVertical(int v, int h)
     {
-        //修改从隔壁列补充元素的掉落信息
+        //修改从隔壁列补充方块的掉落信息
         for (int moveIndex = mGridListManager[v + 1].Count - 1; moveIndex >= 0; moveIndex--)
         {
             if (mGridListManager[v + 1][moveIndex].listHorizontal == h - 1)
@@ -650,7 +648,7 @@ public class GridUIDrop : MonoBehaviour
                 mGridListManager[v + 1][moveIndex].listVertical = v;
                 mGridListManager[v + 1][moveIndex].gridObject.name = "grid" + v.ToString() + h.ToString();
 
-                //将补充元素添加进v列
+                //将补充方块添加进v列
                 for (int i = mGridListManager[v].Count - 1; i >= 0; i--)
                 {
                     if (h < mGridListManager[v][i].listHorizontal)
@@ -664,7 +662,7 @@ public class GridUIDrop : MonoBehaviour
                     }
                 }
 
-                //移除v+1的元素
+                //移除v+1的方块
                 mGridListManager[v + 1].RemoveAt(moveIndex);
                 break;
             }
@@ -672,48 +670,45 @@ public class GridUIDrop : MonoBehaviour
         mGridBaseListManager[v + 1][h - 1].isHasGrid = false;
         mGridBaseListManager[v][h].isHasGrid = true;
 
-        //v+1列上方元素统一往下掉落一格
+        //v+1列上方方块统一往下掉落一格
         dropOneHeight(v + 1, h - 1);
     }
 
     /// <summary>
-    /// 上方元素统一往下掉落一个
+    /// 上方方块统一往下掉落一个
     /// </summary>
     private static void dropOneHeight(int v, int maxHorizontal)
     {
-        //获取最小掉落索引，若上方有空格或者雪块，则只需移动挖空后的元素即可
+        //下移的距离
+        dropHeight = 1 * mInterval;
+
+        //获取最小掉落索引，若上方有空格或者雪块，则只需移动挖空或者雪块后的方块即可
         minHorizontal = 0;
-        for (int h = 8; h >= 0; h--)
+        for (int h = maxHorizontal; h >= 0; h--)
         {
-            if (mGridBaseListManager[v][h].spriteIndex == -1 && mGridBaseListManager[v][h].spriteIndex == 15 && mGridBaseListManager[v][h].spriteIndex == 16 && mGridBaseListManager[v][h].spriteIndex == 17 && mGridBaseListManager[v][h].spriteIndex == 18 && mGridBaseListManager[v][h].spriteIndex == 19)
+            if (mGridBaseListManager[v][h].spriteIndex == -1 || (mGridBaseListManager[v][h].spriteIndex >= 15 && mGridBaseListManager[v][h].spriteIndex <= 20))
             {
-                minHorizontal = h;
+                minHorizontal = h + 1;
                 break;
             }
         }
-        //下移的距离
-        dropHeight = 1 * mInterval;
-        //将minHorizontal和maxHorizontal之间的元素往下移动一格
-        for (int h = maxHorizontal; h >= minHorizontal; h--)
-        {
-            //判断是否为挖空状态
-            if (mGridBaseListManager[v][h].spriteIndex == -1)
-                break;
 
-            //若不为挖空状态，则元素下移一格
+        //将minHorizontal和maxHorizontal之间的方块往下移动一格
+        for (int dropIndex = maxHorizontal; dropIndex >= minHorizontal; dropIndex--)
+        {
             for (int listIndex = mGridListManager[v].Count - 1; listIndex >= 0; listIndex--)
             {
-                if (mGridListManager[v][listIndex].listHorizontal == h)
+                if (mGridListManager[v][listIndex].listHorizontal == dropIndex)
                 {
-                    mGridBaseListManager[v][h].isHasGrid = false;
+                    mGridBaseListManager[v][dropIndex].isHasGrid = false;
 
-                    //记录元素需要掉落的高度
+                    //记录方块需要掉落的高度
                     mGridListManager[v][listIndex].dropHeight += dropHeight;
                     mGridListManager[v][listIndex].dropCounts += 1;
 
                     //修改GridBean下移后的listHorizontal信息
                     mGridListManager[v][listIndex].listHorizontal += 1;
-                    mGridListManager[v][listIndex].gridObject.name = "grid" + v.ToString() + mGridListManager[v][h].listHorizontal.ToString();
+                    mGridListManager[v][listIndex].gridObject.name = "grid" + v.ToString() + mGridListManager[v][dropIndex].listHorizontal.ToString();
                     if (mGridListManager[v][listIndex].listHorizontal < 9)
                         mGridBaseListManager[v][mGridListManager[v][listIndex].listHorizontal].isHasGrid = true;
                     break;
@@ -721,13 +716,13 @@ public class GridUIDrop : MonoBehaviour
             }
         }
 
-        //若上方所有元素均掉落，则需从备用元素中补充掉落
+        //若上方所有方块均掉落，则需从备用方块中补充掉落
         if (minHorizontal == 0)
             dropFromTopList(v, 1);
     }
 
     /// <summary>
-    /// 从备用行补充元素到List中
+    /// 从备用行补充方块到List中
     /// </summary>
     private static void dropFromTopList(int v, int addCounts)
     {
@@ -739,13 +734,13 @@ public class GridUIDrop : MonoBehaviour
             //下移的距离
             dropHeight = a * mInterval;
 
-            //修改备用掉落元素的信息
+            //修改备用掉落方块的信息
             mGridDropList[v].dropHeight = dropHeight + mInterval * topMoveCounts;
             mGridDropList[v].dropCounts = a;
             mGridDropList[v].isTop = true;
             mGridDropList[v].gridObject.GetComponent<RectTransform>().position += new Vector3(0.0f, +(mInterval * topMoveCounts), 0.0f);
 
-            //管理所有列的List对象对应添加元素
+            //管理所有列的List对象对应添加方块
             mGridListManager[v].Insert(0, mGridDropList[v]);
 
             //修改GridBean下移后的listHorizontal信息
@@ -753,10 +748,10 @@ public class GridUIDrop : MonoBehaviour
             mGridListManager[v][0].gridObject.name = "grid" + v.ToString() + mGridListManager[v][0].listHorizontal.ToString();
             mGridBaseListManager[v][mGridListManager[v][0].listHorizontal].isHasGrid = true;
 
-            //移除掉落备用List对应位置的元素
+            //移除掉落备用List对应位置的方块
             mGridDropList.RemoveAt(v);
 
-            //在下移的掉落对象位置，创建一个元素备用，添加于掉落备用List中
+            //在下移的掉落对象位置，创建一个方块备用，添加于掉落备用List中
             GameObject grid = Instantiate(Resources.Load("prefabs/grid"), mGrid.transform) as GameObject;
             Destroy(grid.GetComponent<SpriteRenderer>());
             grid.AddComponent<Image>();
@@ -776,7 +771,7 @@ public class GridUIDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// 从传送门补充元素到List中
+    /// 从传送门补充方块到List中
     /// </summary>
     private static void dropFromDoor(DoorBean doorBean, int addCounts)
     {
@@ -786,10 +781,10 @@ public class GridUIDrop : MonoBehaviour
         int outH = doorBean.outHorizontal;
 
         int inVGridCounts = 0;
-        //判断入口列还剩余多少个元素，是否足以掉落至出口列，
+        //判断入口列还剩余多少个方块，是否足以掉落至出口列，
         for (int h = inH; h >= 0; h--)
         {
-            if (mGridBaseListManager[inV][h].isHasGrid && mGridBaseListManager[inV][h].spriteIndex != -1 && mGridBaseListManager[inV][h].spriteIndex != 15 && mGridBaseListManager[inV][h].spriteIndex != 16 && mGridBaseListManager[inV][h].spriteIndex != 17 && mGridBaseListManager[inV][h].spriteIndex != 18 && mGridBaseListManager[inV][h].spriteIndex != 19)
+            if (mGridBaseListManager[inV][h].isHasGrid && mGridBaseListManager[inV][h].spriteIndex != -1 && !(mGridBaseListManager[inV][h].spriteIndex >= 15 && mGridBaseListManager[inV][h].spriteIndex <= 20))
                 inVGridCounts++;
         }
 
@@ -825,7 +820,7 @@ public class GridUIDrop : MonoBehaviour
                     break;
             }
 
-            //将该元素添加进传送出口的索引位置
+            //将该方块添加进传送出口的索引位置
             mGridListManager[outV].Insert(outIndex, gridBean);
 
             //修改出口列的掉落信息和List处理
@@ -837,7 +832,7 @@ public class GridUIDrop : MonoBehaviour
             mGridListManager[outV][outIndex].gridObject.SetActive(false);
             mGridListManager[outV][outIndex].isDropOutDoor = true;
 
-            //入口的列的剩余元素，需掉落addCounts个格子
+            //入口的列的剩余方块，需掉落addCounts个格子
             if (i + 1 == addCounts)
             {
                 for (int x = inH - addCounts; x >= 0; x--)
@@ -852,7 +847,7 @@ public class GridUIDrop : MonoBehaviour
             }
         }
 
-        //从备用行补充传送门入口元素
+        //从备用行补充传送门入口方块
         dropFromTopList(inV, addCounts);
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class GridBean
 {
     /// <summary>
-    /// 格子元素的对象
+    /// 格子方块的对象
     /// </summary>
     public GameObject gridObject;
 
@@ -14,12 +14,12 @@ public class GridBean
     public int spritesIndex;
 
     /// <summary>
-    /// 元素所在的行
+    /// 方块所在的行
     /// </summary>
     public int listHorizontal;
 
     /// <summary>
-    /// 元素所在的列
+    /// 方块所在的列
     /// </summary>
     public int listVertical;
 

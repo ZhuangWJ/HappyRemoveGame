@@ -14,27 +14,27 @@ public class GridUIActivity : MonoBehaviour
     public Font songTi;
 
     private GameObject GridBg;//格子背景的父对象
-    private GameObject Grid;//元素的父对象
+    private GameObject Grid;//方块的父对象
     private GameObject GameBackground;//背景图父对象
 
-    private float x;//生成元素RectTransform的posX
-    private float y;//生成元素RectTransform的posY
+    private float x;//生成方块RectTransform的posX
+    private float y;//生成方块RectTransform的posY
     private static GameObject stepCounts;
     private GameData gameData;//json数据对象
     private static EditorData editorData;//配置文件的内容
-    private float intervalPx;//元素的间隔
-    private float interval; //两个元素中心点的距离，即元素本身的Size + intervalPx
-    private float gridSize;//元素的width和Height
+    private float intervalPx;//方块的间隔
+    private float interval; //两个方块中心点的距离，即方块本身的Size + intervalPx
+    private float gridSize;//方块的width和Height
     private float leaveSize; //屏幕左右两边共预留的像素
 
     private static List<List<GridBean>> gridListManager = new List<List<GridBean>>();//管理所有列的List
-    private List<GridBean> gridList;//一列元素的List
+    private List<GridBean> gridList;//一列方块的List
     private static List<List<GridBaseBean>> gridBaseListManager = new List<List<GridBaseBean>>();//管理所有列背景的List
-    private List<GridBaseBean> gridBaseList;//一列元素的背景List
-    private List<GridBean> gridDropList = new List<GridBean>();//掉落备用元素List
+    private List<GridBaseBean> gridBaseList;//一列方块的背景List
+    private List<GridBean> gridDropList = new List<GridBean>();//掉落备用方块List
 
     private List<GameObject> lineObjList = new List<GameObject>();//线段对象管理List
-    private List<GridBean> lineConnectGridList = new List<GridBean>();//线段连接的元素管理List
+    private List<GridBean> lineConnectGridList = new List<GridBean>();//线段连接的方块管理List
     private float drawWidth;//线段宽度
     private float drawHeight;//线段高度
     private Vector3 startPoint;//线段初始点
@@ -61,8 +61,9 @@ public class GridUIActivity : MonoBehaviour
     private static GameObject great;//完成目标后显示的对象
     private static GameObject targetGrid;//目标类型
     private List<BeanPod> beanPodList;
-    private static List<GridBean> gridOfBeanPodList;//金豆荚List
-    private static List<GridBean> frostingList;//雪块List
+    private static List<GridBean> gridOfBeanPodList = new List<GridBean>();//金豆荚List
+    private static List<GridBean> frostingList = new List<GridBean>();//雪块List
+    private static List<GridBean> poisonList = new List<GridBean>();//毒液List
 
     private List<GridBean> gridDataList;
     private int nextListIndex;
@@ -81,14 +82,20 @@ public class GridUIActivity : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        //根据配置显示游戏关卡内容
+        //读取配置和解析数据
         initData();
 
-        //初始化游戏场景
+        //初始化游戏背景
         initGameBg();
 
-        //初始化元素
-        initUI();
+        //加载资源
+        initResources();
+
+        //初始化关卡数据，如通过目标，数量，步数
+        initPlayLevelMsg();
+
+        //初始化方块
+        initGrid();
 
         //初始化关卡完成界面
         initFinishPlayLevel();
@@ -99,10 +106,93 @@ public class GridUIActivity : MonoBehaviour
         GridUIAttributeManager.getInstance().deleteCounts = deleteCounts;
     }
 
+    private void initResources()
+    {
+        //加载方块背景类型资源
+        for (int i = 0; i < gridBaseTpyeId.Length; i++)
+        {
+            Sprite sprite = new Sprite();
+            sprite = Resources.Load<Sprite>(gridBaseTpyeId[i]) as Sprite;
+            baseSprites.Add(sprite);
+        }
+
+        //加载方块背景类型资源
+        for (int i = 0; i < resourcesId.Length; i++)
+        {
+            Sprite sprite = new Sprite();
+            sprite = Resources.Load<Sprite>(resourcesId[i]) as Sprite;
+            allSprites.Add(sprite);
+        }
+        GridUIAttributeManager.getInstance().allSprites = allSprites;
+    }
+
+    private void initPlayLevelMsg()
+    {
+        //[1]设置目标类型
+        targetGrid = Instantiate(Resources.Load("prefabs/grid"), targetBoard.transform) as GameObject;
+        targetGrid.name = "targetGrid";
+        Destroy(targetGrid.GetComponent<SpriteRenderer>());
+        targetGrid.AddComponent<Image>();
+        targetGrid.GetComponent<Image>().sprite = allSprites[editorData.targetType];
+        targetGrid.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.1f * 0.7f, gameBgWith * 0.1f * 0.7f);
+        if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
+            targetGrid.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4, 0.0f);
+        else
+            targetGrid.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgWith * 0.1f * 2 / 4, 0.0f);
+
+        //[1.1]判断通过目标是否金豆荚
+        if (editorData.targetType == 13)
+        {
+            beanPodList = new List<BeanPod>();
+            BeanPod beanPod = new BeanPod();
+            beanPod.beanPodVeritcal = UnityEngine.Random.Range(0, 9);
+            beanPod.beanPodHorizontal = 0;
+            beanPodList.Add(beanPod);
+
+            //生成金豆荚的平均步数
+            createBeanPodStep = editorData.stepCounts / editorData.targetCounts;
+            isCreateBeanPod = createBeanPodStep;
+        }
+
+        //[1.2]设置目标数量
+        targetCount = new GameObject();
+        targetCount.name = "targetCount";
+        targetCount.AddComponent<Text>();
+        targetCount.GetComponent<Text>().text = "x" + editorData.targetCounts;
+        targetCount.GetComponent<Text>().fontSize = (int)(gameBgWith * 0.1f * 0.7f / 2);
+        targetCount.GetComponent<Text>().fontStyle = FontStyle.Bold;
+        targetCount.GetComponent<Text>().color = Color.yellow;
+        targetCount.GetComponent<Text>().font = songTi;
+        targetCount.transform.SetParent(targetBoard.transform);
+        targetCount.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.1f * 0.8f, gameBgWith * 0.1f * 0.8f);
+        if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
+            targetCount.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4 - gameBgWith * 0.1f * 0.5f, 0.0f);
+        else
+            targetCount.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4 - gameBgWith * 0.1f * 0.5f, 0.0f);
+        editorData.targetTypeObj = targetGrid;
+        editorData.targetCountObj = targetCount;
+
+        //[1.3]设置可用步数
+        stepCounts = new GameObject();
+        stepCounts.name = "stepCounts";
+        stepCounts.AddComponent<Text>();
+        stepCounts.GetComponent<Text>().text = editorData.stepCounts.ToString();
+        stepCounts.GetComponent<Text>().fontSize = (int)(gameBgWith * 0.1f);
+        stepCounts.GetComponent<Text>().fontStyle = FontStyle.Bold;
+        stepCounts.GetComponent<Text>().color = Color.red;
+        stepCounts.GetComponent<Text>().font = songTi;
+        stepCounts.transform.SetParent(stepBoard.transform);
+        if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
+            stepCounts.GetComponent<RectTransform>().position = new Vector3(gameBgWith - gameBgWith * 0.2f / 2, gameBgHeight - gameBgWith * 0.2f / 2, 0.0f);
+        else
+            stepCounts.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 + gameBgWith / 2 - gameBgWith * 0.2f / 2, gameBgHeight - gameBgWith * 0.2f / 2, 0.0f);
+        editorData.stepCountsObj = stepCounts;
+    }
+
     public void initData()
     {
         //[0]读取配置，获取对象
-        editorData = JsonUtil.getEditorData(6);
+        editorData = JsonUtil.getEditorData(7);
         GridUIAttributeManager.getInstance().editorData = editorData;
 
         //[1]获取格子内容信息
@@ -286,7 +376,7 @@ public class GridUIActivity : MonoBehaviour
             stepBoard.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 + gameBgWith / 2 - gameBgWith * 0.2f / 2, gameBgHeight - gameBgWith * 0.2f / 2, 0.0f);
     }
 
-    public void initUI()
+    public void initGrid()
     {
         //[0]初始化父控件
         GridBg = new GameObject();
@@ -300,83 +390,7 @@ public class GridUIActivity : MonoBehaviour
         Grid.name = "Grid";
         GridBg.GetComponent<RectTransform>().SetParent(mainCanvas.transform);
         Grid.GetComponent<RectTransform>().SetParent(mainCanvas.transform);
-
-        //加载元素背景类型资源
-        for (int i = 0; i < gridBaseTpyeId.Length; i++)
-        {
-            Sprite sprite = new Sprite();
-            sprite = Resources.Load<Sprite>(gridBaseTpyeId[i]) as Sprite;
-            baseSprites.Add(sprite);
-        }
-
-        //加载元素背景类型资源
-        for (int i = 0; i < resourcesId.Length; i++)
-        {
-            Sprite sprite = new Sprite();
-            sprite = Resources.Load<Sprite>(resourcesId[i]) as Sprite;
-            allSprites.Add(sprite);
-        }
-        GridUIAttributeManager.getInstance().allSprites = allSprites;
-
-        //[1]设置目标类型
-        targetGrid = Instantiate(Resources.Load("prefabs/grid"), targetBoard.transform) as GameObject;
-        targetGrid.name = "targetGrid";
-        Destroy(targetGrid.GetComponent<SpriteRenderer>());
-        targetGrid.AddComponent<Image>();
-        targetGrid.GetComponent<Image>().sprite = allSprites[editorData.targetType];
-        targetGrid.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.1f * 0.7f, gameBgWith * 0.1f * 0.7f);
-        if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
-            targetGrid.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4, 0.0f);
-        else
-            targetGrid.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 - gameBgWith * 0.1f * 0.7f * 1 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgWith * 0.1f * 2 / 4, 0.0f);
-        //[1.1]判断通过目标是否金豆荚
-        if (editorData.targetType == 13)
-        {
-            beanPodList = new List<BeanPod>();
-            BeanPod beanPod = new BeanPod();
-            beanPod.beanPodVeritcal = UnityEngine.Random.Range(0, 9);
-            beanPod.beanPodHorizontal = 0;
-            beanPodList.Add(beanPod);
-
-            //生成金豆荚的平均步数
-            createBeanPodStep = editorData.stepCounts / editorData.targetCounts;
-            isCreateBeanPod = createBeanPodStep;
-        }
-
-        //[1.2]设置目标数量
-        targetCount = new GameObject();
-        targetCount.name = "targetCount";
-        targetCount.AddComponent<Text>();
-        targetCount.GetComponent<Text>().text = "x" + editorData.targetCounts;
-        targetCount.GetComponent<Text>().fontSize = (int)(gameBgWith * 0.1f * 0.7f / 2);
-        targetCount.GetComponent<Text>().fontStyle = FontStyle.Bold;
-        targetCount.GetComponent<Text>().color = Color.yellow;
-        targetCount.GetComponent<Text>().font = songTi;
-        targetCount.transform.SetParent(targetBoard.transform);
-        targetCount.GetComponent<RectTransform>().sizeDelta = new Vector2(gameBgWith * 0.1f * 0.8f, gameBgWith * 0.1f * 0.8f);
-        if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
-            targetCount.GetComponent<RectTransform>().position = new Vector3(gameBgWith / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4 - gameBgWith * 0.1f * 0.5f, 0.0f);
-        else
-            targetCount.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 + gameBgWith * 0.1f * 0.7f * 1 * 2 / 3, gameBgHeight - gameBgHeight * 0.1f + gameBgHeight * 0.1f * 2 / 4 - gameBgWith * 0.1f * 0.5f, 0.0f);
-        editorData.targetTypeObj = targetGrid;
-        editorData.targetCountCountObj = targetCount;
-
-        //[1.3]设置可用步数
-        stepCounts = new GameObject();
-        stepCounts.name = "stepCounts";
-        stepCounts.AddComponent<Text>();
-        stepCounts.GetComponent<Text>().text = editorData.stepCounts.ToString();
-        stepCounts.GetComponent<Text>().fontSize = (int)(gameBgWith * 0.1f);
-        stepCounts.GetComponent<Text>().fontStyle = FontStyle.Bold;
-        stepCounts.GetComponent<Text>().color = Color.red;
-        stepCounts.GetComponent<Text>().font = songTi;
-        stepCounts.transform.SetParent(stepBoard.transform);
-        if (Screen.height / Screen.width >= gameBgHeight / gameBgWith)
-            stepCounts.GetComponent<RectTransform>().position = new Vector3(gameBgWith - gameBgWith * 0.2f / 2, gameBgHeight - gameBgWith * 0.2f / 2, 0.0f);
-        else
-            stepCounts.GetComponent<RectTransform>().position = new Vector3(Screen.width / 2 + gameBgWith / 2 - gameBgWith * 0.2f / 2, gameBgHeight - gameBgWith * 0.2f / 2, 0.0f);
-        editorData.stepCountsObj = stepCounts;
-
+        
         //[2]设置格子大小 
         gameData = new GameData();
         gameData.horizontal = 9;
@@ -402,18 +416,16 @@ public class GridUIActivity : MonoBehaviour
         interval = gridSize + intervalPx;
         GridUIAttributeManager.getInstance().gridSize = gridSize;
         GridUIAttributeManager.getInstance().interval = interval;
-        //[3]动态创建元素
-        //[3.1]设置每一列元素的初始位置 x 
+        //[3]动态创建方块
+        //[3.1]设置每一列方块的初始位置 x 
         if (Screen.height >= Screen.width)
             x = leaveSize / 2 + gridSize / 2;
         else
             x = Screen.width / 2 - gameBgWith / 2 + leaveSize / 2 + gridSize / 2;
 
-        gridOfBeanPodList = new List<GridBean>();
-        frostingList = new List<GridBean>();
         for (int vertical = 0; vertical < gameData.vertical; vertical++, x = x + interval)
         {
-            //[3.2]设置第一行元素的初始位置 y
+            //[3.2]设置第一行方块的初始位置 y
             y = Screen.height * 0.75f - gridSize / 2 + interval;
             gridList = new List<GridBean>();
             gridBaseList = new List<GridBaseBean>();
@@ -474,7 +486,7 @@ public class GridUIActivity : MonoBehaviour
                     }
                 }
 
-                //[3.4]生成元素
+                //[3.4]生成方块
                 GameObject grid = Instantiate(Resources.Load("prefabs/grid"), Grid.transform) as GameObject;
                 Destroy(grid.GetComponent<SpriteRenderer>());
                 grid.AddComponent<Image>();
@@ -496,8 +508,9 @@ public class GridUIActivity : MonoBehaviour
                                 switch (gridData.spritesIndex)
                                 {
                                     case 1://不显示
-                                        gridBaseList[horizontal - 1].gridBase.SetActive(false);
                                         gridBaseList[horizontal - 1].spriteIndex = -1;
+                                        gridBean.spritesIndex = gridData.spritesIndex;
+                                        gridBaseList[horizontal - 1].gridBase.SetActive(false);
                                         grid.SetActive(false);
                                         break;
                                     case 15://雪块
@@ -508,6 +521,11 @@ public class GridUIActivity : MonoBehaviour
                                         gridBean.spritesIndex = gridData.spritesIndex;
                                         gridBaseList[horizontal - 1].spriteIndex = gridData.spritesIndex;
                                         frostingList.Add(gridBean);
+                                        break;
+                                    case 20:
+                                        gridBean.spritesIndex = gridData.spritesIndex;
+                                        gridBaseList[horizontal - 1].spriteIndex = gridData.spritesIndex;
+                                        poisonList.Add(gridBean);
                                         break;
                                     default://默认根据ID显示对应资源
                                         gridBean.spritesIndex = gridData.spritesIndex;
@@ -526,7 +544,7 @@ public class GridUIActivity : MonoBehaviour
                 }
                 else
                 {
-                    //备用元素的资源
+                    //备用方块的资源
                     gridBean.spritesIndex = UnityEngine.Random.Range(2, 8);
                 }
 
@@ -628,15 +646,15 @@ public class GridUIActivity : MonoBehaviour
                 x = Screen.width / 2 - gameBgWith / 2 + leaveSize / 2;
             intervalPx = 1.0f;
 
-            //[3]鼠标点中格子区域才会响应，记录初次点中的元素信息
+            //[3]鼠标点中格子区域才会响应，记录初次点中的方块信息
             if (Input.mousePosition.x > x && Input.mousePosition.x < (x + gridSize * gameData.vertical + intervalPx * (gameData.vertical - 1)) && Input.mousePosition.y < y && Input.mousePosition.y > (y - ((gameData.horizontal * gridSize + intervalPx * (gameData.horizontal - 1)))))
             {
                 startVertical = (int)((Input.mousePosition.x - x) / (gridSize + intervalPx));
                 startHorizontal = startListIndex = (int)((y - Input.mousePosition.y) / (gridSize + intervalPx));
                 int startSpriteIndex = gridBaseListManager[startVertical][startHorizontal].spriteIndex;
-                if (gridBaseListManager[startVertical][startHorizontal].isHasGrid && startSpriteIndex != -1 && startSpriteIndex != 15 && startSpriteIndex != 16 && startSpriteIndex != 17 && startSpriteIndex != 18 && startSpriteIndex != 19)
+                if (gridBaseListManager[startVertical][startHorizontal].isHasGrid && startSpriteIndex != -1 && startSpriteIndex != 15 && startSpriteIndex != 16 && startSpriteIndex != 17 && startSpriteIndex != 18 && startSpriteIndex != 19&& startSpriteIndex != 20)
                 {
-                    //判断startVertical该列上没有元素
+                    //判断startVertical该列上没有方块
                     for (int h = startHorizontal - 1; h >= 0; h--)
                     {
                         if (!gridBaseListManager[startVertical][h].isHasGrid)
@@ -657,16 +675,16 @@ public class GridUIActivity : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
-            //[1]鼠标点中格子区域才会响应，记录划动经过的元素信息
+            //[1]鼠标点中格子区域才会响应，记录划动经过的方块信息
             if (Input.mousePosition.x > x && Input.mousePosition.x < (x + gridSize * gameData.vertical + intervalPx * (gameData.vertical - 1)) && Input.mousePosition.y < y && Input.mousePosition.y > (y - ((gameData.horizontal * gridSize + intervalPx * (gameData.horizontal - 1)))))
             {
                 nextVertical = (int)((Input.mousePosition.x - x) / (gridSize + intervalPx));
                 nextHorizontal = nextListIndex = (int)((y - Input.mousePosition.y) / (gridSize + intervalPx));
                 int nextSpriteIndex = gridBaseListManager[nextVertical][nextHorizontal].spriteIndex;
-                if (gridBaseListManager[nextVertical][nextHorizontal].isHasGrid && nextSpriteIndex != -1 && nextSpriteIndex != 15 && nextSpriteIndex != 16 && nextSpriteIndex != 17 && nextSpriteIndex != 18 && nextSpriteIndex != 19)
+                if (gridBaseListManager[nextVertical][nextHorizontal].isHasGrid && nextSpriteIndex != -1 && nextSpriteIndex != 15 && nextSpriteIndex != 16 && nextSpriteIndex != 17 && nextSpriteIndex != 18 && nextSpriteIndex != 19 && nextSpriteIndex != 20)
                 {
 
-                    //判断nextVertical该列上没有元素
+                    //判断nextVertical该列上没有方块
                     for (int h = nextHorizontal - 1; h >= 0; h--)
                     {
                         if (!gridBaseListManager[nextVertical][h].isHasGrid)
@@ -739,7 +757,7 @@ public class GridUIActivity : MonoBehaviour
                                     drawPoint = startPoint + new Vector3(gridSize / 2, -gridSize / 2, 0.0f);
                                 }
 
-                                //[3.2]计算线段宽度，为元素的1/8
+                                //[3.2]计算线段宽度，为方块的1/8
                                 drawWidth = gridSize / 8.0f;
                                 //[3.3]计算线段长度，为两个中心的距离
                                 drawHeight = (startPoint - nextPoint).magnitude;
@@ -750,7 +768,7 @@ public class GridUIActivity : MonoBehaviour
                                 line.transform.SetParent(Grid.transform);
                                 //[3.6]设置线段的旋转角度
                                 line.GetComponent<RectTransform>().Rotate(new Vector3(0.0f, 0.0f, lineRotationZ));
-                                //[3.7]线段连接对象和线段数组添加元素，将划动经过的点作为初始点
+                                //[3.7]线段连接对象和线段数组添加方块，将划动经过的点作为初始点
                                 lineConnectGridList.Add(gridListManager[nextVertical][nextListIndex]);
                                 lineObjList.Add(line);
                                 drawCounts++;
@@ -768,7 +786,7 @@ public class GridUIActivity : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            //[1]在格子区域抬起鼠标，则默认用户希望消除元素，否则则撤销消除
+            //[1]在格子区域抬起鼠标，则默认用户希望消除方块，否则则撤销消除
             if (Input.mousePosition.x > x && Input.mousePosition.x < (x + gridSize * gameData.vertical + intervalPx * (gameData.vertical - 1)) && Input.mousePosition.y < y && Input.mousePosition.y > (y - ((gameData.horizontal * gridSize + intervalPx * (gameData.horizontal - 1)))))
             {
                 if (drawCounts >= 2)
@@ -790,7 +808,7 @@ public class GridUIActivity : MonoBehaviour
                             }
                         }
 
-                        //判断元素底部是否有冰块
+                        //判断方块底部是否有冰块
                         if (iceDataList != null)
                         {
                             foreach (IceBean iceBean in iceDataList)
@@ -825,7 +843,7 @@ public class GridUIActivity : MonoBehaviour
                         if (frostingList != null)
                             checkFrosting(gridBean);
 
-                        //[3]消除元素
+                        //[3]消除方块
                         Destroy(gridBean.gridObject);
                     }
 
@@ -838,7 +856,7 @@ public class GridUIActivity : MonoBehaviour
                         }
                     }
 
-                    //[4]记录元素掉落信息
+                    //[4]记录方块掉落信息
                     GridUIDrop.recordGridDropMsg();
 
                     //[5]刷新步数信息
@@ -876,7 +894,7 @@ public class GridUIActivity : MonoBehaviour
             drawCounts = 0;
         }
 
-        //[8]进行元素掉落
+        //[8]进行方块掉落
         if (gameData != null && gridListManager != null)
             GridUIDrop.gridDrop();
     }
@@ -927,7 +945,7 @@ public class GridUIActivity : MonoBehaviour
         }
     }
 
-    //检查消除元素的上下左右是否有雪块
+    //检查消除方块的上下左右是否有雪块
     private void checkFrosting(GridBean gridBean)
     {
         for (int i = 0; i < frostingList.Count; i++)
