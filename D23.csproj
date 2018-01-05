@@ -223,8 +223,8 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Bean\BasketBean.cs" />
     <Compile Include="Assets\Scripts\Bean\GridUIAttributeManager.cs" />
-    <Compile Include="Assets\Scripts\_UIActivity\GridUIActivity.cs" />
-    <Compile Include="Assets\Scripts\_UIAnimator\GridUIDrop.cs" />
+    <Compile Include="Assets\Scripts\_UIActivity\GridActivity.cs" />
+    <Compile Include="Assets\Scripts\_UIAnimator\GridDrop.cs" />
     <Compile Include="Assets\Scripts\Bean\BeanPod.cs" />
     <Compile Include="Assets\Scripts\Bean\DoorBean.cs" />
     <Compile Include="Assets\Scripts\Bean\EditorData.cs" />

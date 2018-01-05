@@ -4,6 +4,11 @@ using UnityEditor;
 public class GridBaseBean
 {
     /// <summary>
+    /// 背景上方的方块
+    /// </summary>
+    public GridBean gridBean;
+
+    /// <summary>
     /// 格子背景对象
     /// </summary>
     public GameObject gridBase;

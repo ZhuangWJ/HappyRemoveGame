@@ -174,24 +174,24 @@ public class SceneEditor : MonoBehaviour
                     {
                         if (vertical == gridData.listVertical && horizontal == gridData.listHorizontal)
                         {
-                            if (gridData.spritesIndex == -1)
-                                gridBean.spritesIndex = 1;
+                            if (gridData.spriteIndex == -1)
+                                gridBean.spriteIndex = 1;
                             else
-                                gridBean.spritesIndex = gridData.spritesIndex;
+                                gridBean.spriteIndex = gridData.spriteIndex;
                             break;
                         }
                         else
                         {
-                            gridBean.spritesIndex = 0;
+                            gridBean.spriteIndex = 0;
                         }
                     }
                 }
                 else
                 {
-                    gridBean.spritesIndex = 0;
+                    gridBean.spriteIndex = 0;
                 }
 
-                grid.GetComponent<Image>().sprite = mSprites[gridBean.spritesIndex];
+                grid.GetComponent<Image>().sprite = mSprites[gridBean.spriteIndex];
                 grid.GetComponent<RectTransform>().position = new Vector3(x, y, 0);
                 grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                 grid.AddComponent<Button>();
@@ -352,18 +352,18 @@ public class SceneEditor : MonoBehaviour
             for (int horizontal = 0; horizontal < 9; horizontal++)
             {
                 //产生随机方块
-                if (gridListOfEditor[vertical][horizontal].spritesIndex == 0)
+                if (gridListOfEditor[vertical][horizontal].spriteIndex == 0)
                 {
                     mGridListManager[vertical][horizontal].gridObject.SetActive(true);
                     mGridBaseListManager[vertical][horizontal].gridBase.SetActive(true);
-                    mGridListManager[vertical][horizontal].spritesIndex = UnityEngine.Random.Range(2, 8);
-                    mGridListManager[vertical][horizontal].gridObject.GetComponent<Image>().sprite = mSprites[mGridListManager[vertical][horizontal].spritesIndex];
+                    mGridListManager[vertical][horizontal].spriteIndex = UnityEngine.Random.Range(2, 8);
+                    mGridListManager[vertical][horizontal].gridObject.GetComponent<Image>().sprite = mSprites[mGridListManager[vertical][horizontal].spriteIndex];
                     mGridBaseListManager[vertical][horizontal].isHasGrid = true;
-                    mGridBaseListManager[vertical][horizontal].spriteIndex = mGridListManager[vertical][horizontal].spritesIndex;
+                    mGridBaseListManager[vertical][horizontal].spriteIndex = mGridListManager[vertical][horizontal].spriteIndex;
                 }
 
                 //不显示方块，挖空格子
-                if (gridListOfEditor[vertical][horizontal].spritesIndex == 1)
+                if (gridListOfEditor[vertical][horizontal].spriteIndex == 1)
                 {
                     mGridListManager[vertical][horizontal].gridObject.SetActive(false);
                     mGridBaseListManager[vertical][horizontal].gridBase.SetActive(false);
@@ -372,14 +372,14 @@ public class SceneEditor : MonoBehaviour
                 }
 
                 //固定方块
-                if (gridListOfEditor[vertical][horizontal].spritesIndex > 1)
+                if (gridListOfEditor[vertical][horizontal].spriteIndex > 1)
                 {
                     mGridListManager[vertical][horizontal].gridObject.SetActive(true);
                     mGridBaseListManager[vertical][horizontal].gridBase.SetActive(true);
-                    mGridListManager[vertical][horizontal].spritesIndex = gridListOfEditor[vertical][horizontal].spritesIndex;
-                    mGridListManager[vertical][horizontal].gridObject.GetComponent<Image>().sprite = mSprites[mGridListManager[vertical][horizontal].spritesIndex];
+                    mGridListManager[vertical][horizontal].spriteIndex = gridListOfEditor[vertical][horizontal].spriteIndex;
+                    mGridListManager[vertical][horizontal].gridObject.GetComponent<Image>().sprite = mSprites[mGridListManager[vertical][horizontal].spriteIndex];
                     mGridBaseListManager[vertical][horizontal].isHasGrid = true;
-                    mGridBaseListManager[vertical][horizontal].spriteIndex = mGridListManager[vertical][horizontal].spritesIndex;
+                    mGridBaseListManager[vertical][horizontal].spriteIndex = mGridListManager[vertical][horizontal].spriteIndex;
                 }
             }
         }
@@ -635,7 +635,7 @@ public class SceneEditor : MonoBehaviour
                     break;
                 default://设置格子内容
                     gridListOfEditor[startVertical][startHorizontal].gridObject.GetComponent<Image>().sprite = mSprites[currentIndex];
-                    gridListOfEditor[startVertical][startHorizontal].spritesIndex = currentIndex;
+                    gridListOfEditor[startVertical][startHorizontal].spriteIndex = currentIndex;
                     break;
             }
         }
@@ -748,7 +748,7 @@ public class SceneEditor : MonoBehaviour
             for (int horizontal = 0; horizontal < 9; horizontal++)
             {
                 //产生随机方块
-                gridListOfEditor[vertical][horizontal].spritesIndex = 0;
+                gridListOfEditor[vertical][horizontal].spriteIndex = 0;
                 gridListOfEditor[vertical][horizontal].gridObject.GetComponent<Image>().sprite = mSprites[0];
             }
         }
@@ -797,8 +797,8 @@ public class SceneEditor : MonoBehaviour
             for (int horizontal = 0; horizontal < 9; horizontal++)
             {
                 //产生随机方块
-                if (gridListOfEditor[vertical][horizontal].spritesIndex != 0)
-                    gridDataToJson = gridDataToJson + vertical + "|" + horizontal + "|" + (gridListOfEditor[vertical][horizontal].spritesIndex) + ",";
+                if (gridListOfEditor[vertical][horizontal].spriteIndex != 0)
+                    gridDataToJson = gridDataToJson + vertical + "|" + horizontal + "|" + (gridListOfEditor[vertical][horizontal].spriteIndex) + ",";
             }
         }
         mEditorData.gridData = gridDataToJson;

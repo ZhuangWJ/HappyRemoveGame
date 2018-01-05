@@ -11,7 +11,7 @@ public class GridBean
     /// <summary>
     /// Sprite的资源数组索引
     /// </summary>
-    public int spritesIndex;
+    public int spriteIndex;
 
     /// <summary>
     /// 方块所在的行
@@ -123,7 +123,7 @@ public class GridBean
         gridBean.moveCounts = copyGridBean.moveCounts;
         gridBean.moveDirection = copyGridBean.moveDirection;
         gridBean.moveWidth = copyGridBean.moveWidth;
-        gridBean.spritesIndex = copyGridBean.spritesIndex;
+        gridBean.spriteIndex = copyGridBean.spriteIndex;
         return gridBean;
     }
 }
