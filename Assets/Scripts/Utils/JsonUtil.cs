@@ -23,6 +23,7 @@ public class JsonUtil
         editorData.iceData = obj.iceData;
         editorData.beanData = obj.beanData;
         editorData.basketData = obj.basketData;
+        editorData.timboData = obj.timboData;
         return editorData;
     }
 

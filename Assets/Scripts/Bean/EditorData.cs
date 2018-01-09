@@ -77,4 +77,9 @@ public class EditorData
     /// 金豆荚篮子数据
     /// </summary>
     public string basketData;
+
+    /// <summary>
+    /// 树藤数据
+    /// </summary>
+    public string timboData;
 }

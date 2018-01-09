@@ -119,7 +119,7 @@ D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_bin\Debug\UnityEngine.U
 D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_bin\Debug\UnityEngine.GoogleAudioSpatializer.xml
 D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_bin\Debug\UnityEngine.HoloLens.xml
 D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_bin\Debug\UnityEngine.SpatialTracking.xml
-D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_obj\Debug\D23.csprojResolveAssemblyReference.cache
 D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_obj\Debug\D23.csproj.CoreCompileInputs.cache
 D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_obj\Debug\Assembly-CSharp.dll
 D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_obj\Debug\Assembly-CSharp.pdb
+D:\QcUsers\Win7\Administrator\Documents\D23\Temp\UnityVS_obj\Debug\D23.csprojResolveAssemblyReference.cache

@@ -22,4 +22,9 @@ public class GridBaseBean
     /// 方块的资源索引，-1即为空
     /// </summary>
     public int spriteIndex;
+
+    /// <summary>
+    /// 检测僵局时使用，若一次检测中被检测过，则为true
+    /// </summary>
+    public bool isCheck = false;
 }

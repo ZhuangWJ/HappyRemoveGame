@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>Android:13</UnityBuildTarget>
     <UnityVersion>2017.2.0f3</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -221,18 +219,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\_UIActivity\GridConn.cs" />
+    <Compile Include="Assets\Scripts\_UIActivity\GridDrop.cs" />
+    <Compile Include="Assets\Scripts\_UIActivity\GridReset.cs" />
+    <Compile Include="Assets\Scripts\_UIActivity\GridUIInit.cs" />
     <Compile Include="Assets\Scripts\Bean\BasketBean.cs" />
-    <Compile Include="Assets\Scripts\Bean\GridUIAttributeManager.cs" />
-    <Compile Include="Assets\Scripts\_UIActivity\GridActivity.cs" />
-    <Compile Include="Assets\Scripts\_UIAnimator\GridDrop.cs" />
     <Compile Include="Assets\Scripts\Bean\BeanPod.cs" />
     <Compile Include="Assets\Scripts\Bean\DoorBean.cs" />
     <Compile Include="Assets\Scripts\Bean\EditorData.cs" />
     <Compile Include="Assets\Scripts\Bean\GameData.cs" />
     <Compile Include="Assets\Scripts\Bean\GridBaseBean.cs" />
     <Compile Include="Assets\Scripts\Bean\GridBean.cs" />
+    <Compile Include="Assets\Scripts\Bean\GridUIAttributeManager.cs" />
     <Compile Include="Assets\Scripts\Bean\IceBean.cs" />
-    <Compile Include="Assets\Scripts\SceneEditor\SceneEditor.cs" />
+    <Compile Include="Assets\Scripts\Bean\LeaveGridMsg.cs" />
+    <Compile Include="Assets\Scripts\Bean\TimboBean.cs" />
+    <Compile Include="Assets\Scripts\SceneEditor\PlayLevelEditor.cs" />
     <Compile Include="Assets\Scripts\Utils\JsonUtil.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

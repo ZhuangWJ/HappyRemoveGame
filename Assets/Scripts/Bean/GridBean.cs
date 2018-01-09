@@ -29,11 +29,6 @@ public class GridBean
     public float dropHeight;
 
     /// <summary>
-    /// 横移的距离
-    /// </summary>
-    public float moveWidth;
-
-    /// <summary>
     /// 横移的方向 -1为左边，1为右边
     /// </summary>
     public int moveDirection;
@@ -57,11 +52,6 @@ public class GridBean
     /// 是否在最顶层
     /// </summary>
     public bool isTop;
-
-    /// <summary>
-    /// 从其他列补充的掉落距离
-    /// </summary>
-    public float dropHeightFromOther;
 
     /// <summary>
     /// 从其他列补充的掉落次数
@@ -111,19 +101,26 @@ public class GridBean
         gridObject.transform.SetParent(Grid.transform);
 
         gridBean.gridObject = gridObject;
-        gridBean.dropCounts = copyGridBean.dropCounts;
-        gridBean.dropHeight = copyGridBean.dropHeight;
-        gridBean.dropHeightFromOther = copyGridBean.dropHeightFromOther;
-        gridBean.dropHeightFromOtherCounts = copyGridBean.dropHeightFromOtherCounts;
-        gridBean.hasDropHeight = copyGridBean.hasDropHeight;
-        gridBean.hasMoveWidth = copyGridBean.hasMoveWidth;
-        gridBean.isTop = copyGridBean.isTop;
         gridBean.listHorizontal = copyGridBean.listHorizontal;
         gridBean.listVertical = copyGridBean.listVertical;
-        gridBean.moveCounts = copyGridBean.moveCounts;
-        gridBean.moveDirection = copyGridBean.moveDirection;
-        gridBean.moveWidth = copyGridBean.moveWidth;
         gridBean.spriteIndex = copyGridBean.spriteIndex;
+
+        gridBean.dropCounts = copyGridBean.dropCounts;
+        gridBean.dropHeight = copyGridBean.dropHeight;
+
+        gridBean.dropHeightFromOtherCounts = copyGridBean.dropHeightFromOtherCounts;
+        gridBean.hasDropHeight = copyGridBean.hasDropHeight;
+
+        gridBean.moveDirection = copyGridBean.moveDirection;
+        gridBean.hasMoveWidth = copyGridBean.hasMoveWidth;
+        gridBean.moveCounts = copyGridBean.moveCounts;
+
+        gridBean.isTop = copyGridBean.isTop;
+        gridBean.isDropInDoor = copyGridBean.isDropInDoor;
+        gridBean.isDropOutDoor = copyGridBean.isDropOutDoor;
+        gridBean.isDestroy = copyGridBean.isDestroy;
+        gridBean.isFrostingRemove = copyGridBean.isFrostingRemove;
+
         return gridBean;
     }
 }
