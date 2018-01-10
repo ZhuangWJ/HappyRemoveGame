@@ -25,6 +25,7 @@ public class GridDrop : MonoBehaviour
     private static bool endCheckBeanPod;//是否停止检测金豆荚位置
     private static bool isCreateOneBeanPod;//是否创建一个金豆荚
     private static int recordMsgCounts;
+    private static bool isCheckReset;
 
     //初始化GridDrop所需用到的变量
     private static GameData mGameData;
@@ -75,8 +76,8 @@ public class GridDrop : MonoBehaviour
                 {
                     checkIndex = h - 1;
 
-                    //[3]判断剩余List的最后一个对象是否处于最大的位置，若不是，则读取掉落距离并执行，每帧移动后并修改相关信息
-                    if (mGridListManager[i][checkIndex].dropHeight > 0 || mGridListManager[i][checkIndex].hasMoveWidth > 0 || mGridListManager[i][checkIndex].hasDropHeight > 0)
+                    //[3]判断剩余List的最后一个对象是否需要移动，每帧执行移动并修改后续需要移动的距离
+                    if (mGridListManager[i][checkIndex].dropHeight > 0 || mGridListManager[i][checkIndex].hasMoveWidth > 0 || mGridListManager[i][checkIndex].hasDropHeight > 0|| mGridListManager[i][checkIndex].dropAfterMoveHeight>0)
                     {
                         //[3.1]先进行垂直掉落
                         if (mGridListManager[i][checkIndex].dropHeight > dropY)
@@ -218,15 +219,20 @@ public class GridDrop : MonoBehaviour
                                     {
                                         mGridListManager[i][checkIndex].moveCounts--;
                                         if (mGridListManager[i][checkIndex].moveCounts == 0)
+                                        {
                                             mGridListManager[i][checkIndex].hasMoveWidth = 0;
+                                            mGridListManager[i][checkIndex].moveHorizontal = 9;
+                                        }
                                         else
+                                        {
                                             mGridListManager[i][checkIndex].hasMoveWidth = mInterval;
+                                        }
                                     }
                                 }
                             }
                         }
 
-                        //[3.3]最后进行从其他列补充的垂直掉落
+                        //[3.3]横移后的掉落
                         if (mGridListManager[i][checkIndex].dropHeightFromOtherCounts > 0)
                         {
                             if (mGridListManager[i][checkIndex].hasDropHeight > dropY)
@@ -234,6 +240,7 @@ public class GridDrop : MonoBehaviour
                                 //执行掉落
                                 mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position += new Vector3(0.0f, -dropY, 0.0f);
                                 mGridListManager[i][checkIndex].hasDropHeight -= dropY;
+                                continue;
                             }
                             else
                             {
@@ -249,12 +256,52 @@ public class GridDrop : MonoBehaviour
                                 }
                             }
                         }
+
+                        //[3.4]横移掉落完毕后，若下方有空位执行的掉落
+                        if (mGridListManager[i][checkIndex].dropAfterMoveHeight > dropY)
+                        {
+                            //执行掉落
+                            mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position += new Vector3(0.0f, -dropY, 0.0f);
+                            mGridListManager[i][checkIndex].dropAfterMoveHeight -= dropY;
+                        }
+                        else
+                        {
+                            mGridListManager[i][checkIndex].gridObject.GetComponent<RectTransform>().position += new Vector3(0.0f, -mGridListManager[i][checkIndex].dropAfterMoveHeight, 0.0f);
+                            mGridListManager[i][checkIndex].dropAfterMoveHeight = 0;
+                        }
                     }
                 }
             }
         }
-    }
 
+        //判断是否为僵局
+        isCheckReset = true;
+        for (int h = 18; h > 0; h--)
+        {
+            for (int i = 0; i < mGameData.vertical; i++)
+            {
+                if (mGridListManager[i].Count >= h)
+                {
+                    checkIndex = h - 1;
+
+                    //如果还有任何需要移动的格子，则不检测僵局
+                    if (mGridListManager[i][checkIndex].dropHeight > 0 || mGridListManager[i][checkIndex].hasMoveWidth > 0 || mGridListManager[i][checkIndex].hasDropHeight > 0 || mGridListManager[i][checkIndex].dropAfterMoveHeight > 0)
+                    {
+                        isCheckReset = false;
+                        break;
+                    }
+
+                    if (isCheckReset && h == 1 && i == 8)
+                    {
+                        //判断当前方块是否为僵局，方法调用位置仍需思考
+                        GridReset.checkGameisConn();
+                    }
+                }
+            }
+            if (!isCheckReset)
+                break;
+        }
+    }
     /// <summary>
     /// 记录方块掉落的信息
     /// </summary>
@@ -378,8 +425,16 @@ public class GridDrop : MonoBehaviour
                                 //下移的距离
                                 dropHeight = dropGridCounts * mInterval;
 
-                                //记录方块需要掉落的高度
-                                mGridListManager[i][x].dropHeight = dropHeight;
+                                //TODO 判断是否为当列需要掉落的距离
+                                if(mGridListManager[i][x].listHorizontal > mGridListManager[i][x].moveHorizontal)
+                                {
+                                    mGridListManager[i][x].dropAfterMoveHeight = dropHeight;
+                                }
+                                else
+                                {
+                                    //记录方块需要掉落的高度
+                                    mGridListManager[i][x].dropHeight = dropHeight;
+                                }
                                 mGridListManager[i][x].dropCounts = dropGridCounts;
 
                                 //修改GridBean下移后的listHorizontal信息
@@ -389,6 +444,7 @@ public class GridDrop : MonoBehaviour
                                 mGridListManager[i][x].gridObject.name = "grid" + i.ToString() + mGridListManager[i][x].listHorizontal.ToString();
                                 mGridBaseListManager[i][mGridListManager[i][x].listHorizontal].isHasGrid = true;
                                 mGridBaseListManager[i][mGridListManager[i][x].listHorizontal].gridBean = mGridListManager[i][x];
+                                mGridBaseListManager[i][mGridListManager[i][x].listHorizontal].spriteIndex = mGridListManager[i][x].spriteIndex;
                             }
                         }
 
@@ -555,7 +611,7 @@ public class GridDrop : MonoBehaviour
                     }
                 }
 
-                if (mGridBaseListManager[v - 1][h - 1].isHasGrid && mGridBaseListManager[v - 1][h - 1].spriteIndex != -1 || !(mGridBaseListManager[v - 1][h - 1].spriteIndex >= 15 && mGridBaseListManager[v - 1][h - 1].spriteIndex <= 21))
+                if (mGridBaseListManager[v - 1][h - 1].isHasGrid && mGridBaseListManager[v - 1][h - 1].spriteIndex != -1 && !(mGridBaseListManager[v - 1][h - 1].spriteIndex >= 15 && mGridBaseListManager[v - 1][h - 1].spriteIndex <= 21))
                 {
                     for (int x = v - 1; x >= 0; x--)
                     {
@@ -606,6 +662,7 @@ public class GridDrop : MonoBehaviour
         {
             if (mGridListManager[v - 1][moveIndex].listHorizontal == h - 1)
             {
+                mGridListManager[v - 1][moveIndex].moveHorizontal = h - 1;
                 mGridListManager[v - 1][moveIndex].moveDirection = 1;
                 mGridListManager[v - 1][moveIndex].moveCounts += 1;
                 mGridListManager[v - 1][moveIndex].hasMoveWidth = mInterval;
@@ -635,6 +692,7 @@ public class GridDrop : MonoBehaviour
                 mGridBaseListManager[v - 1][h - 1].gridBean = null;
                 mGridBaseListManager[v][h].gridBean = mGridListManager[v - 1][moveIndex];
                 mGridBaseListManager[v][h].isHasGrid = true;
+                mGridBaseListManager[v][h].spriteIndex = mGridListManager[v - 1][moveIndex].spriteIndex;
                 mGridListManager[v - 1].RemoveAt(moveIndex);
                 break;
             }
@@ -654,6 +712,7 @@ public class GridDrop : MonoBehaviour
         {
             if (mGridListManager[v + 1][moveIndex].listHorizontal == h - 1)
             {
+                mGridListManager[v + 1][moveIndex].moveHorizontal = h - 1;
                 mGridListManager[v + 1][moveIndex].moveDirection = -1;
                 mGridListManager[v + 1][moveIndex].moveCounts += 1;
                 mGridListManager[v + 1][moveIndex].hasMoveWidth = mInterval;
@@ -683,6 +742,7 @@ public class GridDrop : MonoBehaviour
                 mGridBaseListManager[v + 1][h - 1].gridBean = null;
                 mGridBaseListManager[v][h].gridBean = mGridListManager[v + 1][moveIndex];
                 mGridBaseListManager[v][h].isHasGrid = true;
+                mGridBaseListManager[v][h].spriteIndex = mGridListManager[v + 1][moveIndex].spriteIndex;
                 mGridListManager[v + 1].RemoveAt(moveIndex);
                 break;
             }
@@ -727,12 +787,12 @@ public class GridDrop : MonoBehaviour
 
                     //修改GridBean下移后的listHorizontal信息
                     mGridListManager[v][listIndex].listHorizontal += 1;
-                    //TODO 会出现角标越界bug
-                    mGridListManager[v][listIndex].gridObject.name = "grid" + v.ToString() + mGridListManager[v][dropIndex].listHorizontal.ToString();
+                    mGridListManager[v][listIndex].gridObject.name = "grid" + v.ToString() + mGridListManager[v][listIndex].listHorizontal.ToString();
                     if (mGridListManager[v][listIndex].listHorizontal < 9)
                     {
                         mGridBaseListManager[v][mGridListManager[v][listIndex].listHorizontal].isHasGrid = true;
                         mGridBaseListManager[v][mGridListManager[v][listIndex].listHorizontal].gridBean = mGridListManager[v][listIndex];
+                        mGridBaseListManager[v][mGridListManager[v][listIndex].listHorizontal].spriteIndex = mGridListManager[v][listIndex].spriteIndex;
                     }
                     break;
                 }
@@ -771,6 +831,7 @@ public class GridDrop : MonoBehaviour
             mGridListManager[v][0].gridObject.name = "grid" + v.ToString() + mGridListManager[v][0].listHorizontal.ToString();
             mGridBaseListManager[v][mGridListManager[v][0].listHorizontal].isHasGrid = true;
             mGridBaseListManager[v][mGridListManager[v][0].listHorizontal].gridBean = mGridListManager[v][0];
+            mGridBaseListManager[v][mGridListManager[v][0].listHorizontal].spriteIndex = mGridListManager[v][0].spriteIndex;
 
             //移除掉落备用List对应位置的方块
             mGridDropList.RemoveAt(v);
@@ -790,6 +851,7 @@ public class GridDrop : MonoBehaviour
             gridBean.listHorizontal = newDropHorizontal;
             gridBean.listVertical = v;
             gridBean.isTop = true;
+            gridBean.moveHorizontal = 9;
             mGridDropList.Insert(v, gridBean);
         }
     }
@@ -824,11 +886,8 @@ public class GridDrop : MonoBehaviour
 
             //修改入口列的掉落信息和List处理
             mGridListManager[inV][inIndex].dropHeight = dropHeight;
-            mGridListManager[inV][inIndex].dropCounts = addCounts;
             mGridBaseListManager[inV][mGridListManager[inV][inIndex].listHorizontal].gridBean = null;
             mGridBaseListManager[inV][mGridListManager[inV][inIndex].listHorizontal].isHasGrid = false;
-            mGridListManager[inV][inIndex].listHorizontal += mGridListManager[inV][inIndex].dropCounts;
-            mGridListManager[inV][inIndex].gridObject.name = "grid" + inV.ToString() + mGridListManager[inV][inIndex].listHorizontal.ToString();
             mGridListManager[inV][inIndex].isDropInDoor = true;
             mGridListManager[inV][inIndex].isDestroy = true;
 
@@ -848,12 +907,11 @@ public class GridDrop : MonoBehaviour
                 }
                 else
                 {
-                    if (mGridListManager[outV][x].listHorizontal < outH + addCounts)
+                    if (mGridListManager[outV][x].listHorizontal < outH + addCounts - i)
                         outIndex++;
                     else
                         break;
                 }
-
             }
 
             //将该方块添加进传送出口的索引位置
@@ -868,6 +926,8 @@ public class GridDrop : MonoBehaviour
             mGridBaseListManager[outV][mGridListManager[outV][outIndex].listHorizontal].gridBean = mGridListManager[outV][outIndex];
             mGridBaseListManager[outV][mGridListManager[outV][outIndex].listHorizontal].spriteIndex = gridBean.spriteIndex;
             mGridListManager[outV][outIndex].gridObject.SetActive(false);
+            mGridListManager[outV][outIndex].isDropInDoor = false;
+            mGridListManager[outV][outIndex].isDestroy = false;
             mGridListManager[outV][outIndex].isDropOutDoor = true;
 
             //入口的列的剩余方块，需掉落addCounts个格子
@@ -883,6 +943,7 @@ public class GridDrop : MonoBehaviour
                     mGridListManager[inV][x].gridObject.name = "grid" + inV.ToString() + mGridListManager[inV][x].listHorizontal.ToString();
                     mGridBaseListManager[inV][mGridListManager[inV][x].listHorizontal].isHasGrid = true;
                     mGridBaseListManager[inV][mGridListManager[inV][x].listHorizontal].gridBean = mGridListManager[inV][x];
+                    mGridBaseListManager[inV][mGridListManager[inV][x].listHorizontal].spriteIndex = mGridListManager[inV][x].spriteIndex;
                 }
             }
         }

@@ -44,6 +44,11 @@ public class GridBean
     public float hasMoveWidth;
 
     /// <summary>
+    /// 横移的所在行
+    /// </summary>
+    public int moveHorizontal;
+
+    /// <summary>
     /// 下落的格子数
     /// </summary>
     public int dropCounts;
@@ -57,6 +62,11 @@ public class GridBean
     /// 从其他列补充的掉落次数
     /// </summary>
     public int dropHeightFromOtherCounts;
+
+    /// <summary>
+    /// 横移掉落后，需要掉落的高度
+    /// </summary>
+    public float dropAfterMoveHeight;
 
     /// <summary>
     /// 是否进入传送门入口

@@ -87,7 +87,7 @@ public class GridUIInit : MonoBehaviour
     public void initData()
     {
         //[0]读取配置，获取对象
-        editorData = JsonUtil.getEditorData(9);
+        editorData = JsonUtil.getEditorData(8);
         GridUIAttributeManager.getInstance().editorData = editorData;
 
         //[1]获取格子内容信息
@@ -580,6 +580,7 @@ public class GridUIInit : MonoBehaviour
                 grid.GetComponent<RectTransform>().position = new Vector3(x, y, 0);
                 grid.GetComponent<RectTransform>().sizeDelta = new Vector2(gridSize, gridSize);
                 gridBean.gridObject = grid;
+                gridBean.moveHorizontal = 9;
 
                 //[3.5]储存格子掉落信息
                 if (horizontal == 0)

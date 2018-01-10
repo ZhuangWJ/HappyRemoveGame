@@ -85,31 +85,21 @@ public class GridConn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //获取第一个点中的方块信息
         if (Input.GetMouseButtonDown(0))
-        {
-            //获取第一个点中的方块信息
             getStartGrid();
-        }
 
+        //判断移动后的下一个方块是否与第一个方块类型相同
         if (Input.GetMouseButton(0))
-        {
-            //判断移动后的下一个方块是否与第一个方块类型相同
             getNextGridAndDrawLine();
-        }
 
+        //松手后判断方块连接数是否可消除，并进行冰块、雪块等判断消除和掉落信息记录
         if (Input.GetMouseButtonUp(0))
-        {
-            //松手后判断方块连接数是否可消除，并进行冰块、雪块等判断消除和掉落信息记录
             updateUIAndGirdMsg();
-
-            //判断当前方块是否为僵局，方法调用位置仍需思考
-            GridReset.checkGameisConn();
-        }
 
         //执行方块掉落
         GridDrop.gridDrop();
     }
-
 
     private void getStartGrid()
     {
