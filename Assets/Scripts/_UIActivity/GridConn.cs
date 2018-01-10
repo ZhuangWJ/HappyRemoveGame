@@ -266,7 +266,7 @@ public class GridConn : MonoBehaviour
                     if (gridBean.specialTpye >= 0)
                     {
                         //TODO 实现特效方块消除效果
-
+                        removeSpecialGrid(gridBean);
                     }
                 }
 
@@ -454,6 +454,12 @@ public class GridConn : MonoBehaviour
 
         //[14]移除lineConnectGridList的内容
         lineConnectGridList.Clear();
+    }
+    
+    //消除特效方块
+    private void removeSpecialGrid(GridBean gridBean)
+    {
+
     }
 
     //生成特效方块
