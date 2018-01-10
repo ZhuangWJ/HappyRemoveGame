@@ -177,7 +177,7 @@ public class PlayLevelEditor : MonoBehaviour
                 {
                     foreach (GridBean gridData in mGridDataList)
                     {
-                        if (vertical == gridData.listVertical && horizontal == gridData.listHorizontal)
+                        if (vertical == gridData.vertical && horizontal == gridData.horizontal)
                         {
                             if (gridData.spriteIndex == -1)
                                 gridBean.spriteIndex = 1;

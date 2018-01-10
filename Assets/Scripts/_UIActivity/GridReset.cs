@@ -221,15 +221,15 @@ public class GridReset : MonoBehaviour
             mGridListManager[gridB.vertical].Add(cloneGridA);
 
         //修改互换的数据
-        mGridListManager[gridA.vertical][gridAInedx].listVertical = gridA.vertical;
-        mGridListManager[gridA.vertical][gridAInedx].listHorizontal = gridA.horizontal;
+        mGridListManager[gridA.vertical][gridAInedx].vertical = gridA.vertical;
+        mGridListManager[gridA.vertical][gridAInedx].horizontal = gridA.horizontal;
         mGridListManager[gridA.vertical][gridAInedx].gridObject.GetComponent<RectTransform>().position = mGridBaseListManager[gridA.vertical][gridA.horizontal].gridBase.GetComponent<RectTransform>().position;
         mGridListManager[gridA.vertical][gridAInedx].gridObject.name = "grid" + gridA.vertical.ToString() + gridA.horizontal.ToString();
         mGridBaseListManager[gridA.vertical][gridA.horizontal].gridBean = mGridListManager[gridA.vertical][gridAInedx];
         mGridBaseListManager[gridA.vertical][gridA.horizontal].spriteIndex = mGridListManager[gridA.vertical][gridAInedx].spriteIndex;
 
-        mGridListManager[gridB.vertical][gridBInedx].listVertical = gridB.vertical;
-        mGridListManager[gridB.vertical][gridBInedx].listHorizontal = gridB.horizontal;
+        mGridListManager[gridB.vertical][gridBInedx].vertical = gridB.vertical;
+        mGridListManager[gridB.vertical][gridBInedx].horizontal = gridB.horizontal;
         mGridListManager[gridB.vertical][gridBInedx].gridObject.GetComponent<RectTransform>().position = mGridBaseListManager[gridB.vertical][gridB.horizontal].gridBase.GetComponent<RectTransform>().position;
         mGridListManager[gridB.vertical][gridBInedx].gridObject.name = "grid" + gridB.vertical.ToString() + gridB.horizontal.ToString();
         mGridBaseListManager[gridB.vertical][gridB.horizontal].gridBean = mGridListManager[gridB.vertical][gridBInedx];

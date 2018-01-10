@@ -20,6 +20,11 @@ public class GridUIAttributeManager
     public List<Sprite> allSprites;
 
     /// <summary>
+    /// 特效资源集合
+    /// </summary>
+    public List<Sprite> specialSprites;
+
+    /// <summary>
     /// 游戏背景父对象
     /// </summary>
     public GameObject GameBackground;

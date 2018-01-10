@@ -14,14 +14,24 @@ public class GridBean
     public int spriteIndex;
 
     /// <summary>
+    /// 特效资源数组的索引
+    /// </summary>
+    public int specialIndex;
+
+    /// <summary>
+    /// 特效类型
+    /// </summary>
+    public int specialTpye;
+
+    /// <summary>
     /// 方块所在的行
     /// </summary>
-    public int listHorizontal;
+    public int horizontal;
 
     /// <summary>
     /// 方块所在的列
     /// </summary>
-    public int listVertical;
+    public int vertical;
 
     /// <summary>
     /// 需要掉落的距离
@@ -111,8 +121,8 @@ public class GridBean
         gridObject.transform.SetParent(Grid.transform);
 
         gridBean.gridObject = gridObject;
-        gridBean.listHorizontal = copyGridBean.listHorizontal;
-        gridBean.listVertical = copyGridBean.listVertical;
+        gridBean.horizontal = copyGridBean.horizontal;
+        gridBean.vertical = copyGridBean.vertical;
         gridBean.spriteIndex = copyGridBean.spriteIndex;
 
         gridBean.dropCounts = copyGridBean.dropCounts;

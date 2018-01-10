@@ -2,6 +2,7 @@
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System;
 
 public class GridConn : MonoBehaviour
 {
@@ -42,9 +43,9 @@ public class GridConn : MonoBehaviour
     private static List<GridBean> mGridOfBeanPodList;
     private static List<GridBean> mFrostingList;
     private static List<GridBean> mPoisonList;
-    
     private static GameObject mGrid;
     private static List<Sprite> mAllSprites;
+    private static List<Sprite> mSpecialSprites;
     private static float mGridSize;
     private static float mIntervalPx;
     private static List<List<GridBaseBean>> mGridBaseListManager;
@@ -78,7 +79,7 @@ public class GridConn : MonoBehaviour
         mGreat = GridUIAttributeManager.getInstance().great;
         mStepCounts = GridUIAttributeManager.getInstance().stepCounts;
         mTargetCount = GridUIAttributeManager.getInstance().targetCount;
-
+        mSpecialSprites = GridUIAttributeManager.getInstance().specialSprites;
         deleteCounts = GridUIAttributeManager.getInstance().deleteCounts;
     }
 
@@ -258,37 +259,50 @@ public class GridConn : MonoBehaviour
             {
                 isRemovePoison = false;
 
+                //优先判断是否有特效方块
                 foreach (GridBean gridBean in lineConnectGridList)
                 {
-                    isDestroyGrid = false;
-                    int currenttVertical = gridBean.listVertical;
-
-                    for (int removeIndex = 0; removeIndex < mGridListManager[currenttVertical].Count; removeIndex++)
+                    
+                    if (gridBean.specialTpye >= 0)
                     {
-                        if (mGridListManager[currenttVertical][removeIndex].listHorizontal == gridBean.listHorizontal)
+                        //TODO 实现特效方块消除效果
+
+                    }
+                }
+
+                //判断是否需要消除lineConnectGridList剩余的普通方块
+                foreach (GridBean gridBean in lineConnectGridList)
+                {
+                    int v = gridBean.vertical;
+                    int h = gridBean.horizontal;
+
+                    isDestroyGrid = false;
+                    for (int removeIndex = 0; removeIndex < mGridListManager[v].Count; removeIndex++)
+                    {
+                        if (mGridListManager[v][removeIndex].horizontal == h)
                         {
                             //[2]计算是否消除了目标类型
                             if (gridBean.spriteIndex == mEditorData.targetType)
                                 deleteCounts++;
 
                             //[3]判断方块上方是否有树藤
-                            if (mGridBaseListManager[currenttVertical][gridBean.listHorizontal].spriteIndex == 21)
+                            if (mGridBaseListManager[v][h].spriteIndex == 21)
                             {
                                 foreach (TimboBean timboBean in mTimboDataList)
                                 {
-                                    if (timboBean.timboVertical == currenttVertical && timboBean.timboHorizontal == gridBean.listHorizontal)
+                                    if (timboBean.timboVertical == v && timboBean.timboHorizontal == h)
                                     {
                                         Destroy(timboBean.timbo);
                                         mTimboDataList.Remove(timboBean);
-                                        mGridBaseListManager[currenttVertical][gridBean.listHorizontal].spriteIndex = 0;
+                                        mGridBaseListManager[v][h].spriteIndex = 0;
                                         break;
                                     }
                                 }
                             }
                             else
                             {
-                                mGridBaseListManager[currenttVertical][gridBean.listHorizontal].isHasGrid = false;
-                                mGridListManager[currenttVertical].RemoveAt(removeIndex);
+                                mGridBaseListManager[v][h].isHasGrid = false;
+                                mGridListManager[v].RemoveAt(removeIndex);
                                 isDestroyGrid = true;
                             }
                             break;
@@ -300,7 +314,7 @@ public class GridConn : MonoBehaviour
                     {
                         foreach (IceBean iceBean in mIceDataList)
                         {
-                            if (iceBean.iceVertical == currenttVertical && iceBean.iceHorizontal == gridBean.listHorizontal)
+                            if (iceBean.iceVertical == v && iceBean.iceHorizontal == h)
                             {
                                 mIceLevel = iceBean.iceLevel;
                                 if (mIceLevel > 0)
@@ -348,13 +362,66 @@ public class GridConn : MonoBehaviour
                     }
                 }
 
-                //[8]检查是否需要生成毒液
+                //[8]判断是否生成特效方块
+                if (lineConnectGridList.Count >= 10)
+                {
+                    //产生魔力鸟
+                    createSpecialGrid(0);
+                }
+                else
+                {
+                    if (lineConnectGridList.Count >= 6)
+                    {
+                        int startV = lineConnectGridList[0].vertical;
+                        int startH = lineConnectGridList[0].horizontal;
+                        //判断都在同一列或者同一行，产生横竖直线特效方块
+                        bool isTheSameVertical = true;
+                        foreach (GridBean g in lineConnectGridList)
+                        {
+                            if (g.vertical != startV)
+                            {
+                                isTheSameVertical = false;
+                                break;
+                            }
+                        }
+
+                        if (isTheSameVertical)
+                        {
+                            //产生竖线特效
+                            createSpecialGrid(1);
+                        }
+                        else
+                        {
+                            bool isTheSameHorizontal = true;
+                            foreach (GridBean g in lineConnectGridList)
+                            {
+                                if (g.horizontal != startH)
+                                {
+                                    isTheSameHorizontal = false;
+                                    break;
+                                }
+                            }
+                            if (isTheSameHorizontal)
+                            {
+                                //产生横线特效
+                                createSpecialGrid(2);
+                            }
+                            else
+                            {
+                                //若不为上述两种情况，则产生爆炸方块
+                                createSpecialGrid(3);
+                            }
+                        }
+                    }
+                }
+
+                //[9]检查是否需要生成毒液
                 checkIsCreatePoison();
 
-                //[9]记录方块掉落信息
+                //[10]记录方块掉落信息
                 GridDrop.recordGridDropMsg();
 
-                //[10]刷新步数信息
+                //[11]刷新步数信息
                 mEditorData.stepCounts--;
                 if (mEditorData.targetType == 13)
                     mIsCreateBeanPod--;
@@ -366,17 +433,15 @@ public class GridConn : MonoBehaviour
                 }
                 else
                 {
-                    //[10.1]已没有步数，提示失败
+                    //[11.1]已没有步数，提示失败
                 }
 
-                //[11]刷新目标数量
+                //[12]刷新目标数量
                 updateTargetCounts(deleteCounts);
             }
         }
 
-        //[12]移除lineConnectGridList的内容
-        lineConnectGridList.Clear();
-
+        //[13]移除线段对象和线段数量
         if (lineObjList.Count > 0)
         {
             foreach (GameObject obj in lineObjList)
@@ -385,8 +450,61 @@ public class GridConn : MonoBehaviour
             }
             lineObjList.Clear();
         }
-
         drawCounts = 0;
+
+        //[14]移除lineConnectGridList的内容
+        lineConnectGridList.Clear();
+    }
+
+    //生成特效方块
+    private void createSpecialGrid(int specialTpye)
+    {
+        //获取连线第一个方块的位置
+        int v = lineConnectGridList[0].vertical;
+        int h = lineConnectGridList[0].horizontal;
+
+        GameObject grid = Instantiate(Resources.Load("prefabs/grid"), mGrid.transform) as GameObject;
+        grid.GetComponent<RectTransform>().position = mGridBaseListManager[v][h].gridBase.GetComponent<RectTransform>().position;
+        grid.GetComponent<RectTransform>().sizeDelta = new Vector2(mGridSize, mGridSize);
+        Destroy(grid.GetComponent<SpriteRenderer>());
+        grid.AddComponent<Image>();
+
+        GridBean gridBean = new GridBean();
+        gridBean.gridObject = grid;
+        gridBean.moveHorizontal = 9;
+        gridBean.vertical = v;
+        gridBean.horizontal = h;
+        gridBean.isTop = false;
+
+        gridBean.spriteIndex = lineConnectGridList[0].spriteIndex;
+        gridBean.specialTpye = specialTpye;
+        //根据specialTpye特效类型判断生成哪种特效
+        switch (specialTpye)
+        {
+            case 0://魔力鸟
+                gridBean.specialIndex = 0;
+                break;
+            case 1://竖线
+            case 2://横线
+                gridBean.specialIndex = lineConnectGridList[0].spriteIndex -1;
+                break;
+            case 3://爆炸
+                gridBean.specialIndex = lineConnectGridList[0].spriteIndex - 1 + 6;
+                break;
+        }
+        grid.GetComponent<Image>().sprite = mSpecialSprites[gridBean.specialIndex];
+        grid.name = "grid" + v.ToString() + h.ToString();
+        mGridBaseListManager[v][h].spriteIndex = gridBean.spriteIndex;
+        mGridBaseListManager[v][h].isHasGrid = true;
+
+        //获取当前位置所在列的索引，进行添加
+        int index = 0;
+        foreach(GridBean g in mGridListManager[v])
+        {
+            if (h > g.horizontal)
+                index++;
+        }
+        mGridListManager[v].Insert(index, gridBean);
     }
 
     //生成一个金豆荚
@@ -438,7 +556,7 @@ public class GridConn : MonoBehaviour
     {
         for (int i = 0; i < mFrostingList.Count; i++)
         {
-            if ((System.Math.Abs(mFrostingList[i].listVertical - gridBean.listVertical) <= 1 && mFrostingList[i].listHorizontal - gridBean.listHorizontal == 0) || (mFrostingList[i].listVertical - gridBean.listVertical == 0 && System.Math.Abs(mFrostingList[i].listHorizontal - gridBean.listHorizontal) <= 1))
+            if ((System.Math.Abs(mFrostingList[i].vertical - gridBean.vertical) <= 1 && mFrostingList[i].horizontal - gridBean.horizontal == 0) || (mFrostingList[i].vertical - gridBean.vertical == 0 && System.Math.Abs(mFrostingList[i].horizontal - gridBean.horizontal) <= 1))
             {
                 if (!mFrostingList[i].isFrostingRemove)
                 {
@@ -451,9 +569,9 @@ public class GridConn : MonoBehaviour
                     {
                         Destroy(mFrostingList[i].gridObject);
                         deleteCounts++;
-                        mGridBaseListManager[mFrostingList[i].listVertical][mFrostingList[i].listHorizontal].isHasGrid = false;
+                        mGridBaseListManager[mFrostingList[i].vertical][mFrostingList[i].horizontal].isHasGrid = false;
                     }
-                    mGridBaseListManager[mFrostingList[i].listVertical][mFrostingList[i].listHorizontal].spriteIndex = mFrostingList[i].spriteIndex;
+                    mGridBaseListManager[mFrostingList[i].vertical][mFrostingList[i].horizontal].spriteIndex = mFrostingList[i].spriteIndex;
                     mFrostingList[i].isFrostingRemove = true;
                 }
             }
@@ -468,7 +586,7 @@ public class GridConn : MonoBehaviour
                 {
                     foreach (GridBean grid in mFrostingList)
                     {
-                        if (grid.listVertical == v && grid.listHorizontal == h)
+                        if (grid.vertical == v && grid.horizontal == h)
                         {
                             mFrostingList.Remove(grid);
                             mGridListManager[v].Remove(grid);
@@ -488,9 +606,9 @@ public class GridConn : MonoBehaviour
         {
             for (int i = 0, v, h; i < mPoisonList.Count; i++)
             {
-                v = mPoisonList[i].listVertical;
-                h = mPoisonList[i].listHorizontal;
-                if ((System.Math.Abs(v - gridBean.listVertical) <= 1 && h - gridBean.listHorizontal == 0) || (v - gridBean.listVertical == 0 && System.Math.Abs(h - gridBean.listHorizontal) <= 1))
+                v = mPoisonList[i].vertical;
+                h = mPoisonList[i].horizontal;
+                if ((System.Math.Abs(v - gridBean.vertical) <= 1 && h - gridBean.horizontal == 0) || (v - gridBean.vertical == 0 && System.Math.Abs(h - gridBean.horizontal) <= 1))
                 {
                     mGridListManager[v].Remove(mPoisonList[i]);
                     Destroy(mPoisonList[i].gridObject);
@@ -525,8 +643,8 @@ public class GridConn : MonoBehaviour
             int randomIndex;
             for (int i = 0, v, h; i < mPoisonList.Count; i++)
             {
-                v = mPoisonList[i].listVertical;
-                h = mPoisonList[i].listHorizontal;
+                v = mPoisonList[i].vertical;
+                h = mPoisonList[i].horizontal;
                 if (h > 0)
                 {
                     topGridSpriteIndex = mGridBaseListManager[v][h - 1].spriteIndex;

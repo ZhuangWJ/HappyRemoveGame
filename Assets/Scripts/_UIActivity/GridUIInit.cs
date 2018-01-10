@@ -7,8 +7,10 @@ public class GridUIInit : MonoBehaviour
 {
     private static string[] gridBaseTypeId = new string[] { "gridbase" };
     private static List<Sprite> baseSprites = new List<Sprite>();
-    private static string[] resourcesId = new string[] { "random", "visable", "monkey", "panda", "chicken", "penguin", "pig", "rabbit", "door", "door", "ice1", "ice2", "ice3", "beanpod", "basket", "frosting1", "frosting2", "frosting3", "frosting4", "frosting5", "poison", "lock" };
+    private static string[] resourcesId = new string[] { "random", "visable", "bear", "cat", "chicken", "fox", "frog", "horse", "door", "door", "ice1", "ice2", "ice3", "beanpod", "basket", "frosting1", "frosting2", "frosting3", "frosting4", "frosting5", "poison", "lock" };
     private static List<Sprite> allSprites = new List<Sprite>();
+    private static string[] specialGrids = new string[] { "bird","bear_line", "cat_line", "chicken_line", "fox_line", "frog_line", "horse_line", "bear_wrap", "cat_wrap", "chicken_wrap", "fox_wrap", "frog_wrap", "horse_wrap" };
+    private static List<Sprite> specialSprites = new List<Sprite>();
 
     public GameObject mainCanvas;
     public Font songTi;
@@ -87,7 +89,7 @@ public class GridUIInit : MonoBehaviour
     public void initData()
     {
         //[0]读取配置，获取对象
-        editorData = JsonUtil.getEditorData(8);
+        editorData = JsonUtil.getEditorData(10);
         GridUIAttributeManager.getInstance().editorData = editorData;
 
         //[1]获取格子内容信息
@@ -101,8 +103,8 @@ public class GridUIInit : MonoBehaviour
                 {
                     string[] result = grid.Split('|');
                     GridBean gridBean = new GridBean();
-                    gridBean.listVertical = int.Parse(result[0]);
-                    gridBean.listHorizontal = int.Parse(result[1]);
+                    gridBean.vertical = int.Parse(result[0]);
+                    gridBean.horizontal = int.Parse(result[1]);
                     gridBean.spriteIndex = int.Parse(result[2]);
                     gridDataList.Add(gridBean);
                 }
@@ -291,6 +293,15 @@ public class GridUIInit : MonoBehaviour
             allSprites.Add(sprite);
         }
         GridUIAttributeManager.getInstance().allSprites = allSprites;
+
+        //加载方块背景类型资源
+        for (int i = 0; i < specialGrids.Length; i++)
+        {
+            Sprite sprite = new Sprite();
+            sprite = Resources.Load<Sprite>(specialGrids[i]) as Sprite;
+            specialSprites.Add(sprite);
+        }
+        GridUIAttributeManager.getInstance().specialSprites = specialSprites;
     }
 
     private void initPlayLevelMsg()
@@ -477,7 +488,7 @@ public class GridUIInit : MonoBehaviour
                 Destroy(grid.GetComponent<SpriteRenderer>());
                 grid.AddComponent<Image>();
                 GridBean gridBean = new GridBean();
-
+                gridBean.specialTpye = -1;
                 if (horizontal != 0)
                     gridBaseList[horizontal - 1].gridBean = gridBean;
 
@@ -493,7 +504,7 @@ public class GridUIInit : MonoBehaviour
                     {
                         foreach (GridBean gridData in gridDataList)
                         {
-                            if (vertical == gridData.listVertical && (horizontal - 1) == gridData.listHorizontal)
+                            if (vertical == gridData.vertical && (horizontal - 1) == gridData.horizontal)
                             {
                                 switch (gridData.spriteIndex)
                                 {
@@ -585,9 +596,9 @@ public class GridUIInit : MonoBehaviour
                 //[3.5]储存格子掉落信息
                 if (horizontal == 0)
                 {
-                    gridBean.listHorizontal = horizontal;
-                    gridBean.listVertical = vertical;
-                    grid.name = "grid" + gridBean.listVertical.ToString() + gridBean.listHorizontal.ToString();
+                    gridBean.horizontal = horizontal;
+                    gridBean.vertical = vertical;
+                    grid.name = "grid" + gridBean.vertical.ToString() + gridBean.horizontal.ToString();
                     grid.SetActive(false);
                     gridBean.isTop = true;
                     gridDropList.Add(gridBean);
@@ -596,9 +607,9 @@ public class GridUIInit : MonoBehaviour
                 //[3.6]储存格式显示信息
                 if (horizontal != 0)
                 {
-                    gridBean.listHorizontal = horizontal - 1;
-                    gridBean.listVertical = vertical;
-                    grid.name = "grid" + gridBean.listVertical.ToString() + gridBean.listHorizontal.ToString();
+                    gridBean.horizontal = horizontal - 1;
+                    gridBean.vertical = vertical;
+                    grid.name = "grid" + gridBean.vertical.ToString() + gridBean.horizontal.ToString();
                     gridBean.isTop = false;
                     gridList.Add(gridBean);
                 }
