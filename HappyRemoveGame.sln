@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HappyRemoveGame", "HappyRemoveGame.csproj", "{E3E3FCBB-A6E0-632A-4983-F1A9FCE4CCB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HappyRemoveGame.Editor", "HappyRemoveGame.Editor.csproj", "{997478EF-289C-BD32-E32C-58B0560AFEBD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E3E3FCBB-A6E0-632A-4983-F1A9FCE4CCB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3E3FCBB-A6E0-632A-4983-F1A9FCE4CCB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3E3FCBB-A6E0-632A-4983-F1A9FCE4CCB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3E3FCBB-A6E0-632A-4983-F1A9FCE4CCB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{997478EF-289C-BD32-E32C-58B0560AFEBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{997478EF-289C-BD32-E32C-58B0560AFEBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{997478EF-289C-BD32-E32C-58B0560AFEBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{997478EF-289C-BD32-E32C-58B0560AFEBD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
